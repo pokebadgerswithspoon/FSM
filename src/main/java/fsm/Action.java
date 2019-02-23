@@ -23,6 +23,7 @@ public interface Action<S, E> {
      * @param transition never null
      */
     public void execute(FsmRuntime runtime, TransitionContext<S, E> transition);
+    
     public static final Action TAKE_NO_ACTION = new Action() {
         @Override
         public void execute(FsmRuntime runtime, TransitionContext transition) {

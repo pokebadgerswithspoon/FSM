@@ -19,15 +19,15 @@ import java.util.Map;
  */
 public class StateHandler<S, E> {
 
-    Map<E, Collection<EventHandler<S>>> eventMap = new HashMap();
+    Map<E, Collection<EventHandler<S, E>>> eventMap = new HashMap();
 
-    public void register(E event, Action action, Guard guard, S stateTo) {
-        Collection<EventHandler<S>> handlers = handlers(event);
+    public void register(E event, Action<S, E> action, Guard<S, E> guard, S stateTo) {
+        Collection<EventHandler<S,E>> handlers = handlers(event);
         handlers.add(new EventHandler(action, guard, stateTo));
     }
 
-    private Collection<EventHandler<S>> handlers(E event) {
-        Collection<EventHandler<S>> result = eventMap.get(event);
+    private Collection<EventHandler<S, E>> handlers(E event) {
+        Collection<EventHandler<S, E>> result = eventMap.get(event);
         if (result == null) {
             result = new ArrayList();
             eventMap.put(event, result);
@@ -44,10 +44,10 @@ public class StateHandler<S, E> {
      * @return new state or null if no action taken
      */
     public S handle(S state, Event<E> event, FsmRuntime runtime) {
-        Collection<EventHandler<S>> handlers = handlers(event.getType());
+        Collection<EventHandler<S, E>> handlers = handlers(event.getType());
         boolean stateToFound = false;
         S stateTo = null;
-        for (EventHandler<S> handler : handlers) {
+        for (EventHandler<S,E> handler : handlers) {
             if (handler.guard.allow(event, state, runtime)) {
                 if (!stateToFound) {
                     stateTo = handler.stateTo;
@@ -65,9 +65,9 @@ public class StateHandler<S, E> {
         }
     }
 
-    private static class EventHandler<S> {
+    private static class EventHandler<S, E> {
 
-        private Action action;
+        private Action<S, E> action;
         private Guard guard;
         private S stateTo;
 

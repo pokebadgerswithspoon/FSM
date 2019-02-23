@@ -11,7 +11,6 @@ package fsm.syntax;
 import fsm.StateHandler;
 import fsm.Action;
 import fsm.Guard;
-import fsm.State;
 import fsm.util.Guards;
 import java.util.Collection;
 
