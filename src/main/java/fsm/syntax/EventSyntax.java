@@ -9,17 +9,16 @@
 package fsm.syntax;
 
 import fsm.StateHandler;
-import fsm.Event;
 
 /**
  *
  * @author lauri
  */
-public interface EventSyntax {
+public interface EventSyntax<E> {
 
-    public TransitionSyntax on(Event.Type event);
+    public TransitionSyntax on(E event);
 
-    static class Impl implements EventSyntax {
+    static class Impl<E> implements EventSyntax<E> {
 
         private StateHandler handler;
 
@@ -28,7 +27,7 @@ public interface EventSyntax {
         }
 
         @Override
-        public TransitionSyntax on(Event.Type event) {
+        public TransitionSyntax on(E event) {
             return new TransitionSyntax.Impl(handler, event);
         }
     }

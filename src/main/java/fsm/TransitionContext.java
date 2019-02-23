@@ -12,20 +12,20 @@ package fsm;
  *
  * @author lauri
  */
-public interface TransitionContext {
+public interface TransitionContext<S,E> {
 
-    public State getFrom();
+    public S getFrom();
 
-    public State getTo();
+    public S getTo();
 
-    public Event getEvent();
+    public Event<E> getEvent();
 
-    static class Impl implements TransitionContext {
+    static class Impl<S,E> implements TransitionContext<S,E> {
 
-        private State from, to;
-        private Event event;
+        private S from, to;
+        private Event<E> event;
 
-        public Impl(State from, State to, Event event) {
+        public Impl(S from, S to, Event<E> event) {
             this.from = from;
             // keep state
             this.to = to == null ? from : to;
@@ -33,17 +33,17 @@ public interface TransitionContext {
         }
 
         @Override
-        public State getFrom() {
+        public S getFrom() {
             return from;
         }
 
         @Override
-        public State getTo() {
+        public S getTo() {
             return to;
         }
 
         @Override
-        public Event getEvent() {
+        public Event<E> getEvent() {
             return event;
         }
 

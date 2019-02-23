@@ -11,14 +11,13 @@ package fsm.util;
 import fsm.Event;
 import fsm.FsmRuntime;
 import fsm.Guard;
-import fsm.State;
 
 /**
  * A guard that will do the opposite thing as would wrapped guard do
  *
  * @author lauri
  */
-class LogicalNotGuard implements Guard {
+class LogicalNotGuard<S,E> implements Guard<S,E> {
 
     private Guard guard;
 
@@ -27,7 +26,7 @@ class LogicalNotGuard implements Guard {
     }
 
     @Override
-    public boolean allow(Event event, State state, FsmRuntime runtime) {
+    public boolean allow(Event<E> event, S state, FsmRuntime runtime) {
         return !guard.allow(event, state, runtime);
     }
 }

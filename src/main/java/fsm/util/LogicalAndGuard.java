@@ -11,7 +11,6 @@ package fsm.util;
 import fsm.Event;
 import fsm.FsmRuntime;
 import fsm.Guard;
-import fsm.State;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -21,20 +20,20 @@ import java.util.HashSet;
  *
  * @author lauri
  */
-class LogicalAndGuard implements Guard {
+class LogicalAndGuard<S,E> implements Guard<S,E> {
 
-    private Collection<Guard> guards = new HashSet();
+    private Collection<Guard<S,E>> guards = new HashSet();
 
     public LogicalAndGuard(Guard... guards) {
         this(Arrays.asList(guards));
     }
 
-    public LogicalAndGuard(Collection<Guard> guards) {
+    public LogicalAndGuard(Collection<Guard<S,E>> guards) {
         this.guards = guards;
     }
 
     @Override
-    public boolean allow(Event event, State state, FsmRuntime runtime) {
+    public boolean allow(Event<E> event, S state, FsmRuntime runtime) {
         for (Guard guard : guards) {
             if (!guard.allow(event, state, runtime)) {
                 return false;

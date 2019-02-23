@@ -17,17 +17,17 @@ import java.util.Map;
  *
  * @author lauri
  */
-public class StateHandler {
+public class StateHandler<S, E> {
 
-    Map<Event.Type, Collection<EventHandler>> eventMap = new HashMap();
+    Map<E, Collection<EventHandler<S>>> eventMap = new HashMap();
 
-    public void register(Event.Type event, Action action, Guard guard, State stateTo) {
-        Collection<EventHandler> handlers = handlers(event);
+    public void register(E event, Action action, Guard guard, S stateTo) {
+        Collection<EventHandler<S>> handlers = handlers(event);
         handlers.add(new EventHandler(action, guard, stateTo));
     }
 
-    private Collection<EventHandler> handlers(Event.Type event) {
-        Collection<EventHandler> result = eventMap.get(event);
+    private Collection<EventHandler<S>> handlers(E event) {
+        Collection<EventHandler<S>> result = eventMap.get(event);
         if (result == null) {
             result = new ArrayList();
             eventMap.put(event, result);
@@ -43,18 +43,18 @@ public class StateHandler {
      * @param runtime
      * @return new state or null if no action taken
      */
-    public State handle(State state, Event event, FsmRuntime runtime) {
-        Collection<EventHandler> handlers = handlers(event.getType());
+    public S handle(S state, Event<E> event, FsmRuntime runtime) {
+        Collection<EventHandler<S>> handlers = handlers(event.getType());
         boolean stateToFound = false;
-        State stateTo = null;
-        for (EventHandler handler : handlers) {
+        S stateTo = null;
+        for (EventHandler<S> handler : handlers) {
             if (handler.guard.allow(event, state, runtime)) {
                 if (!stateToFound) {
                     stateTo = handler.stateTo;
                     stateToFound = true;
                 }
                 if (handler.stateTo == stateTo) {
-                    handler.action.execute(runtime, new TransitionContext.Impl(state, stateTo, event));
+                    handler.action.execute(runtime, new TransitionContext.Impl<S,E>(state, stateTo, event));
                 }
             }
         }
@@ -65,13 +65,13 @@ public class StateHandler {
         }
     }
 
-    private static class EventHandler {
+    private static class EventHandler<S> {
 
         private Action action;
         private Guard guard;
-        private State stateTo;
+        private S stateTo;
 
-        public EventHandler(Action action, Guard guard, State stateTo) {
+        public EventHandler(Action action, Guard guard, S stateTo) {
             this.action = action == null ? Action.TAKE_NO_ACTION : action;
             this.guard = guard == null ? Guard.ALLOW : guard;
             this.stateTo = stateTo;

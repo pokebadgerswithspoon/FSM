@@ -17,21 +17,21 @@ import java.util.Map;
  *
  * @author lauri
  */
-public class FsmDefinition implements FsmDefinitionSyntax {
+public class FsmDefinition<S, E> implements FsmDefinitionSyntax<S, E> {
 
-    private Map<State, StateHandler> stateHandlers;
+    private Map<S, StateHandler<S, E>> stateHandlers;
 
     public FsmDefinition() {
         stateHandlers = new HashMap();
     }
 
     @Override
-    public EventSyntax in(State state) {
+    public EventSyntax in(S state) {
         StateHandler handler = handler(state);
         return new EventSyntax.Impl(handler);
     }
 
-    private StateHandler handler(State state) {
+    private StateHandler handler(S state) {
         StateHandler result = stateHandlers.get(state);
         if (result == null) {
             result = new StateHandler();
@@ -40,7 +40,7 @@ public class FsmDefinition implements FsmDefinitionSyntax {
         return result;
     }
 
-    public Fsm define(final FsmRuntime runtime, State initialState) {
+    public Fsm define(final FsmRuntime runtime, S initialState) {
         FsmImpl fsm = new FsmImpl(runtime, initialState);
         if (!stateHandlers.containsKey(initialState)) {
             throw new IllegalArgumentException("State " + initialState + " is unknown to FSM definition");
@@ -48,29 +48,29 @@ public class FsmDefinition implements FsmDefinitionSyntax {
         return fsm;
     }
 
-    private class FsmImpl implements Fsm {
+    private class FsmImpl implements Fsm<S, E> {
 
         private final FsmRuntime runtime;
-        private State currentState;
+        private S currentState;
 
-        public FsmImpl(FsmRuntime runtime, State initialState) {
+        public FsmImpl(FsmRuntime runtime, S initialState) {
             this.runtime = runtime;
             this.currentState = initialState;
         }
 
         @Override
-        public State getState() {
+        public S getState() {
             return currentState;
         }
 
         @Override
-        public void handle(Event event) {
-            State state = getState();
-            StateHandler handler = stateHandlers.get(state);
+        public void handle(Event<E> event) {
+            S state = getState();
+            StateHandler<S, E> handler = stateHandlers.get(state);
             if (handler == null) {
                 throw new IllegalStateException("Uknown state");
             } else {
-                State newState = handler.handle(state, event, runtime);
+                S newState = handler.handle(state, event, runtime);
                 if (newState != null) {
                     currentState = newState;
                 }

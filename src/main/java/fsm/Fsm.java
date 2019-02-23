@@ -12,21 +12,21 @@ package fsm;
  *
  * @author lauri
  */
-public interface Fsm {
+public interface Fsm<S,E> {
 
     /**
      * Make machine to handle an event, this may trigger state change
      *
      * @param event to handle
      */
-    void handle(Event event);
+    void handle(Event<E> event);
 
     /**
      * State of the machine
      *
      * @return never null value
      */
-    State getState();
+    S getState();
     
     
 }

@@ -10,7 +10,6 @@ package fsm.syntax;
 
 import fsm.StateHandler;
 import fsm.Action;
-import fsm.Event;
 import fsm.Guard;
 import fsm.State;
 import fsm.util.Guards;
@@ -20,15 +19,15 @@ import java.util.Collection;
  *
  * @author lauri
  */
-public interface StateSyntax {
+public interface StateSyntax<S> {
 
-    public void to(State state2);
+    public void to(S state2);
 
     public void keepState();
 
-    static class Impl implements StateSyntax {
+    static class Impl<S, E> implements StateSyntax<S> {
 
-        private TransitionSyntax.Impl transtition;
+        private TransitionSyntax.Impl<S,E> transtition;
         private Action action;
 
         public Impl(final TransitionSyntax.Impl transition, final Action action) {
@@ -37,9 +36,9 @@ public interface StateSyntax {
         }
 
         @Override
-        public void to(State state) {
-            StateHandler stateHandler = transtition.handler;
-            Event.Type event = transtition.event;
+        public void to(S state) {
+            StateHandler<S,E> stateHandler = transtition.handler;
+            E event = transtition.event;
             Guard guard = guard(transtition.guards);
             stateHandler.register(event, action, guard, state);
         }

@@ -25,19 +25,19 @@ public interface TransitionSyntax {
 
     public TransitionSyntax onlyIf(Guard guard);
 
-    static class Impl implements TransitionSyntax {
+    static class Impl<S, E> implements TransitionSyntax {
 
         StateHandler handler;
-        Event.Type event;
+        E event;
         Collection<Guard> guards = null;
 
-        Impl(final StateHandler handler, final Event.Type event) {
+        Impl(final StateHandler handler, final E event) {
             this.handler = handler;
             this.event = event;
         }
 
         @Override
-        public StateSyntax transition(Action action) {
+        public StateSyntax<S> transition(Action action) {
             return new StateSyntax.Impl(this, action);
         }
 

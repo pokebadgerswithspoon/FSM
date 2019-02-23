@@ -8,13 +8,11 @@
  */
 package fsm.syntax;
 
-import fsm.State;
-
 /**
  *
  * @author lauri
  */
-public interface FsmDefinitionSyntax {
+public interface FsmDefinitionSyntax<S,E> {
 
-    public EventSyntax in(State state);
+    public EventSyntax<E> in(S state);
 }
