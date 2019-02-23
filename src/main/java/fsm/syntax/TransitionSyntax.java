@@ -8,8 +8,12 @@
  */
 package fsm.syntax;
 
+import fsm.StateHandler;
 import fsm.Action;
+import fsm.Event;
 import fsm.Guard;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  *
@@ -20,4 +24,30 @@ public interface TransitionSyntax {
     public StateSyntax transition(Action action);
 
     public TransitionSyntax onlyIf(Guard guard);
+
+    static class Impl implements TransitionSyntax {
+
+        StateHandler handler;
+        Event.Type event;
+        Collection<Guard> guards = null;
+
+        Impl(final StateHandler handler, final Event.Type event) {
+            this.handler = handler;
+            this.event = event;
+        }
+
+        @Override
+        public StateSyntax transition(Action action) {
+            return new StateSyntax.Impl(this, action);
+        }
+
+        @Override
+        public TransitionSyntax onlyIf(Guard guard) {
+            if (guards == null && guard != null) {
+                guards = new ArrayList();
+                guards.add(guard);
+            }
+            return this;
+        }
+    }
 }

@@ -6,14 +6,8 @@
  * Copyright(c) 2019.  All Rights Reserved. ☣
  * This software is the proprietary information.
  */
-package fsm.impl;
+package fsm;
 
-import fsm.Action;
-import fsm.Event;
-import fsm.Event;
-import fsm.FsmRuntime;
-import fsm.Guard;
-import fsm.State;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,7 +21,7 @@ public class StateHandler {
 
     Map<Event.Type, Collection<EventHandler>> eventMap = new HashMap();
 
-    void register(Event.Type event, Action action, Guard guard, State stateTo) {
+    public void register(Event.Type event, Action action, Guard guard, State stateTo) {
         Collection<EventHandler> handlers = handlers(event);
         handlers.add(new EventHandler(action, guard, stateTo));
     }
@@ -60,7 +54,7 @@ public class StateHandler {
                     stateToFound = true;
                 }
                 if (handler.stateTo == stateTo) {
-                    handler.action.execute(runtime, new TransitionContextImpl(state, stateTo, event));
+                    handler.action.execute(runtime, new TransitionContext.Impl(state, stateTo, event));
                 }
             }
         }

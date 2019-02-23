@@ -8,8 +8,6 @@
  */
 package fsm;
 
-import fsm.impl.EventSyntaxImpl;
-import fsm.impl.StateHandler;
 import fsm.syntax.EventSyntax;
 import fsm.syntax.FsmDefinitionSyntax;
 import java.util.HashMap;
@@ -30,7 +28,7 @@ public class FsmDefinition implements FsmDefinitionSyntax {
     @Override
     public EventSyntax in(State state) {
         StateHandler handler = handler(state);
-        return new EventSyntaxImpl(handler);
+        return new EventSyntax.Impl(handler);
     }
 
     private StateHandler handler(State state) {
@@ -52,7 +50,7 @@ public class FsmDefinition implements FsmDefinitionSyntax {
 
     private class FsmImpl implements Fsm {
 
-        FsmRuntime runtime;
+        private final FsmRuntime runtime;
         private State currentState;
 
         public FsmImpl(FsmRuntime runtime, State initialState) {
