@@ -17,16 +17,16 @@ import java.util.Map;
  *
  * @author lauri
  */
-public class FsmDefinition<S, E> implements FsmDefinitionSyntax<S, E> {
+public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
 
-    private Map<S, StateHandler<S, E>> stateHandlers;
+    private Map<S, StateHandler<S, E, R>> stateHandlers;
 
     public FsmDefinition() {
         stateHandlers = new HashMap();
     }
 
     @Override
-    public EventSyntax in(S state) {
+    public EventSyntax<S, E, R> in(S state) {
         StateHandler handler = handler(state);
         return new EventSyntax.Impl(handler);
     }
@@ -40,7 +40,7 @@ public class FsmDefinition<S, E> implements FsmDefinitionSyntax<S, E> {
         return result;
     }
 
-    public Fsm define(final FsmRuntime runtime, S initialState) {
+    public Fsm<S, E> define(final R runtime, S initialState) {
         FsmImpl fsm = new FsmImpl(runtime, initialState);
         if (!stateHandlers.containsKey(initialState)) {
             throw new IllegalArgumentException("State " + initialState + " is unknown to FSM definition");
@@ -50,10 +50,10 @@ public class FsmDefinition<S, E> implements FsmDefinitionSyntax<S, E> {
 
     private class FsmImpl implements Fsm<S, E> {
 
-        private final FsmRuntime runtime;
+        private final R runtime;
         private S currentState;
 
-        public FsmImpl(FsmRuntime runtime, S initialState) {
+        public FsmImpl(R runtime, S initialState) {
             this.runtime = runtime;
             this.currentState = initialState;
         }
@@ -66,7 +66,7 @@ public class FsmDefinition<S, E> implements FsmDefinitionSyntax<S, E> {
         @Override
         public void handle(Event<E> event) {
             S state = getState();
-            StateHandler<S, E> handler = stateHandlers.get(state);
+            StateHandler<S, E, R> handler = stateHandlers.get(state);
             if (handler == null) {
                 throw new IllegalStateException("Uknown state");
             } else {

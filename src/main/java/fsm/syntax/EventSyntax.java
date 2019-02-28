@@ -14,11 +14,11 @@ import fsm.StateHandler;
  *
  * @author lauri
  */
-public interface EventSyntax<E> {
+public interface EventSyntax<S, E, R> {
 
-    public TransitionSyntax on(E event);
+    public TransitionSyntax<S, E, R> on(E event);
 
-    static class Impl<E> implements EventSyntax<E> {
+    static class Impl<S, E, R> implements EventSyntax<S, E, R> {
 
         private StateHandler handler;
 

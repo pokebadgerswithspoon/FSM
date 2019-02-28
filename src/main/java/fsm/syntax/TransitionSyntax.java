@@ -10,7 +10,6 @@ package fsm.syntax;
 
 import fsm.StateHandler;
 import fsm.Action;
-import fsm.Event;
 import fsm.Guard;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,13 +18,13 @@ import java.util.Collection;
  *
  * @author lauri
  */
-public interface TransitionSyntax {
+public interface TransitionSyntax<S, E, R> {
 
-    public StateSyntax transition(Action action);
+    public StateSyntax<S, E, R> transition(Action<S, E, R> action);
 
     public TransitionSyntax onlyIf(Guard guard);
 
-    static class Impl<S, E> implements TransitionSyntax {
+    static class Impl<S, E, R> implements TransitionSyntax<S, E, R> {
 
         StateHandler handler;
         E event;
@@ -37,7 +36,7 @@ public interface TransitionSyntax {
         }
 
         @Override
-        public StateSyntax<S> transition(Action action) {
+        public StateSyntax<S, E, R> transition(Action action) {
             return new StateSyntax.Impl(this, action);
         }
 

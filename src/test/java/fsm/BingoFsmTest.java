@@ -9,6 +9,7 @@
 package fsm;
 
 import static fsm.Action.TAKE_NO_ACTION;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 /**
@@ -27,7 +28,11 @@ public class BingoFsmTest {
         bingo.in("ANNOUNCE").on("HELLO").transition(TAKE_NO_ACTION).to("END");
         
         
+        Fsm fsm = bingo.define(null, "INIT");
         
-        bingo.define(null, "INIT");
+        fsm.handle(new Event.Impl("HELLO"));
+        
+        assertEquals("SALES", fsm.getState());
+        
     }
 }

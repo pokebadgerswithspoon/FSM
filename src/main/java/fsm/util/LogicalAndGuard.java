@@ -9,7 +9,6 @@
 package fsm.util;
 
 import fsm.Event;
-import fsm.FsmRuntime;
 import fsm.Guard;
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,20 +19,20 @@ import java.util.HashSet;
  *
  * @author lauri
  */
-class LogicalAndGuard<S,E> implements Guard<S,E> {
+class LogicalAndGuard<S,E,R> implements Guard<S,E,R> {
 
-    private Collection<Guard<S,E>> guards = new HashSet();
+    private Collection<Guard<S,E,R>> guards = new HashSet();
 
     public LogicalAndGuard(Guard... guards) {
         this(Arrays.asList(guards));
     }
 
-    public LogicalAndGuard(Collection<Guard<S,E>> guards) {
+    public LogicalAndGuard(Collection<Guard<S,E,R>> guards) {
         this.guards = guards;
     }
 
     @Override
-    public boolean allow(Event<E> event, S state, FsmRuntime runtime) {
+    public boolean allow(Event<E> event, S state, R runtime) {
         for (Guard guard : guards) {
             if (!guard.allow(event, state, runtime)) {
                 return false;

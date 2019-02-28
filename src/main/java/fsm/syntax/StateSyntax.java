@@ -18,15 +18,15 @@ import java.util.Collection;
  *
  * @author lauri
  */
-public interface StateSyntax<S> {
+public interface StateSyntax<S, E, R> {
 
     public void to(S state2);
 
     public void keepState();
 
-    static class Impl<S, E> implements StateSyntax<S> {
+    static class Impl<S, E, R> implements StateSyntax<S, E, R> {
 
-        private TransitionSyntax.Impl<S,E> transtition;
+        private TransitionSyntax.Impl<S,E,R> transtition;
         private Action action;
 
         public Impl(final TransitionSyntax.Impl transition, final Action action) {
@@ -36,7 +36,7 @@ public interface StateSyntax<S> {
 
         @Override
         public void to(S state) {
-            StateHandler<S,E> stateHandler = transtition.handler;
+            StateHandler<S, E, R> stateHandler = transtition.handler;
             E event = transtition.event;
             Guard guard = guard(transtition.guards);
             stateHandler.register(event, action, guard, state);

@@ -9,7 +9,6 @@
 package fsm.util;
 
 import fsm.Event;
-import fsm.FsmRuntime;
 import fsm.Guard;
 
 /**
@@ -17,7 +16,7 @@ import fsm.Guard;
  *
  * @author lauri
  */
-class LogicalNotGuard<S,E> implements Guard<S,E> {
+class LogicalNotGuard<S,E,R> implements Guard<S,E,R> {
 
     private Guard guard;
 
@@ -26,7 +25,7 @@ class LogicalNotGuard<S,E> implements Guard<S,E> {
     }
 
     @Override
-    public boolean allow(Event<E> event, S state, FsmRuntime runtime) {
+    public boolean allow(Event<E> event, S state, R runtime) {
         return !guard.allow(event, state, runtime);
     }
 }
