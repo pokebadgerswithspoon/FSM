@@ -12,7 +12,7 @@ package fsm;
  *
  * @author lauri
  */
-public interface Fsm<S,E> {
+public interface Fsm<S, E, R> {
 
     /**
      * Make machine to handle an event, this may trigger state change
@@ -27,6 +27,7 @@ public interface Fsm<S,E> {
      * @return never null value
      */
     S getState();
-    
-    
+
+    R getRuntime();
+
 }

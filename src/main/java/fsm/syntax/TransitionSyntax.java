@@ -20,9 +20,11 @@ import java.util.Collection;
  */
 public interface TransitionSyntax<S, E, R> {
 
+    public StateSyntax<S, E, R> transition();
+
     public StateSyntax<S, E, R> transition(Action<S, E, R> action);
 
-    public TransitionSyntax onlyIf(Guard guard);
+    public TransitionSyntax<S, E, R> onlyIf(Guard<S, E, R> guard);
 
     static class Impl<S, E, R> implements TransitionSyntax<S, E, R> {
 
@@ -30,9 +32,14 @@ public interface TransitionSyntax<S, E, R> {
         E event;
         Collection<Guard> guards = null;
 
-        Impl(final StateHandler handler, final E event) {
+        public Impl(final StateHandler handler, final E event) {
             this.handler = handler;
             this.event = event;
+        }
+
+        @Override
+        public StateSyntax<S, E, R> transition() {
+            return transition(Action.TAKE_NO_ACTION);
         }
 
         @Override

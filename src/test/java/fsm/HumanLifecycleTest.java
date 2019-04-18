@@ -11,7 +11,7 @@ package fsm;
 import static fsm.Action.TAKE_NO_ACTION;
 import static fsm.HumanLifecycleTest.State.*;
 import static fsm.HumanLifecycleTest.Events.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
@@ -23,42 +23,58 @@ public class HumanLifecycleTest {
     enum State {
         INIT,
         AWAKE,
-        ASLEEP
+        ASLEEP,
+        DEAD
     }
 
     enum Events {
         BIRTH,
         TICK,
+        EAT,
         WAKE,
     }
 
     class HumanBody {
-        int age = 0;
-        int food = 0;
+
+        int ageTicks = 0;
+        int food = 10;
         int tireness = 0;
-        
     }
 
     @Test
     public void testBabyFsm() {
 
-        FsmDefinition<State, Events, HumanBody> baby = new FsmDefinition();
+        FsmDefinition<State, Events, HumanBody> human = new FsmDefinition();
 
-        baby.in(INIT).on(BIRTH).transition((body, context) -> {body.age++; log(body);}).to(AWAKE);
-        baby.in(AWAKE).on(TICK).transition(TAKE_NO_ACTION).to(ASLEEP);
-        baby.in(ASLEEP).on(WAKE).transition(TAKE_NO_ACTION).to(AWAKE);
-        
+        human.on(TICK).transition((body, context) -> {
+            body.ageTicks++;
+            body.food--;
+            body.tireness++;
+            System.out.println("body.food  = " +body.food);
+        }).keepState();
+        human.on(TICK).onlyIf((event, state, body) -> body.food < 0).transition().to(DEAD);
 
-        Fsm fsm = baby.define(new HumanBody(), INIT);
-
-        fsm.handle(new Event.Impl(BIRTH));
-        assertEquals(AWAKE, fsm.getState());
-
-        fsm.handle(new Event.Impl(BIRTH));
+        human.in(INIT).on(BIRTH).transition().to(AWAKE);
+        human.in(AWAKE).on(TICK).transition().to(ASLEEP);
+        human.in(ASLEEP).on(WAKE).transition().to(AWAKE);
 
 
+        Fsm<State, Events, HumanBody> masha = human.define(new HumanBody(), INIT);
+
+        masha.handle(new Event.Impl(BIRTH));
+        assertEquals(AWAKE, masha.getState());
+        masha.handle(new Event.Impl(TICK));
+
+        masha.handle(new Event.Impl(BIRTH));
+
+        assertTrue(masha.getRuntime().ageTicks > 0);
+
+        for (int i = 0; i < 15; i++) {
+            masha.handle(new Event.Impl(TICK));
+        }
+        assertEquals(DEAD, masha.getState());
     }
-    
+
     private static void log(Object o) {
         System.out.println(o);
     }

@@ -10,6 +10,8 @@ package fsm;
 
 import fsm.syntax.EventSyntax;
 import fsm.syntax.FsmDefinitionSyntax;
+import fsm.syntax.TransitionSyntax;
+import static fsm.util.Util.iterableNonNulls;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +21,8 @@ import java.util.Map;
  */
 public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
 
-    private Map<S, StateHandler<S, E, R>> stateHandlers;
+    private final StateHandler<S, E, R> anyStateHandler = new StateHandler();
+    private final Map<S, StateHandler<S, E, R>> stateHandlers;
 
     public FsmDefinition() {
         stateHandlers = new HashMap();
@@ -31,6 +34,11 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         return new EventSyntax.Impl(handler);
     }
 
+    @Override
+    public TransitionSyntax<S, E, R> on(E event) {
+        return new TransitionSyntax.Impl(anyStateHandler, event);
+    }
+
     private StateHandler handler(S state) {
         StateHandler result = stateHandlers.get(state);
         if (result == null) {
@@ -40,7 +48,7 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         return result;
     }
 
-    public Fsm<S, E> define(final R runtime, S initialState) {
+    public Fsm<S, E, R> define(final R runtime, S initialState) {
         FsmImpl fsm = new FsmImpl(runtime, initialState);
         if (!stateHandlers.containsKey(initialState)) {
             throw new IllegalArgumentException("State " + initialState + " is unknown to FSM definition");
@@ -48,7 +56,7 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         return fsm;
     }
 
-    private class FsmImpl implements Fsm<S, E> {
+    private class FsmImpl implements Fsm<S, E, R> {
 
         private final R runtime;
         private S currentState;
@@ -65,16 +73,20 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
 
         @Override
         public void handle(Event<E> event) {
-            S state = getState();
-            StateHandler<S, E, R> handler = stateHandlers.get(state);
-            if (handler == null) {
-                throw new IllegalStateException("Uknown state");
-            } else {
-                S newState = handler.handle(state, event, runtime);
-                if (newState != null) {
+            Iterable<StateHandler<S, E, R>> handlers = iterableNonNulls(anyStateHandler, stateHandlers.get(currentState));
+            
+            for(StateHandler<S, E, R> handler: handlers) {
+                S newState = handler.handle(currentState, event, runtime);
+                if (!currentState.equals(newState)) {
                     currentState = newState;
+                    return;
                 }
             }
+        }
+
+
+        public R getRuntime() {
+            return runtime;
         }
     }
 }
