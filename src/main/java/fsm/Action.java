@@ -29,4 +29,13 @@ public interface Action<S, E, R> {
         public void execute(Object runtime, TransitionContext transition) {
         }
     };
+    
+    public static <S, E, R> Action<S, E, R> combine(Action<S, E, R> ...actions) {
+        return (R runtime, TransitionContext<S, E> transition) -> {
+            for(Action<S, E, R> action: actions) {
+                action.execute(runtime, transition);
+            }
+        };
+    }
+    
 }
