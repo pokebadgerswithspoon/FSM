@@ -8,7 +8,6 @@
  */
 package fsm;
 
-import static fsm.Action.TAKE_NO_ACTION;
 import static fsm.HumanLifecycleTest.State.*;
 import static fsm.HumanLifecycleTest.Events.*;
 import static org.junit.Assert.*;
