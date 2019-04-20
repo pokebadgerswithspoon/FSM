@@ -31,7 +31,7 @@ public class FsmTest {
     @Test
     public void testDoubleMatchWithKeepState() {
 
-        FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
+        FsmDefinition<String, String> rules = new FsmDefinition();
         Runtime runtime = new Runtime();
 
         Action<?> log = log(runtime);
@@ -44,7 +44,7 @@ public class FsmTest {
         rules.on("KNOCK").transition(action).keepState();
         rules.in("INIT").on("KNOCK").transition(action).keepState();
 
-        Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
+        Fsm<String, String> fsm = rules.define("INIT");
 
         fsm.handle(new Event("KNOCK"));
 
@@ -56,11 +56,11 @@ public class FsmTest {
         Runtime runtime = new Runtime();
         Action<?> increment = increment(runtime);
 
-        FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
+        FsmDefinition<String, String> rules = new FsmDefinition();
         rules.on("KNOCK").transition(increment).keepState();
         rules.in("INIT").on("KNOCK").transition(increment).to("THE END");
 
-        Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
+        Fsm<String, String> fsm = rules.define("INIT");
 
         fsm.handle(new Event("KNOCK"));
         fsm.handle(new Event("KNOCK"));
@@ -74,11 +74,11 @@ public class FsmTest {
         Runtime runtime = new Runtime();
         Action<?> increment = increment(runtime);
 
-        FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
+        FsmDefinition<String, String> rules = new FsmDefinition();
         rules.in("INIT").on("KNOCK").transition(increment).keepState();
         rules.in("INIT").on("KNOCK").transition(increment).to("THE END");
 
-        Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
+        Fsm<String, String> fsm = rules.define("INIT");
 
         fsm.handle(new Event("KNOCK"));
         fsm.handle(new Event("KNOCK"));

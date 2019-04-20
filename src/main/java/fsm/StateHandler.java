@@ -18,11 +18,11 @@ import java.util.Map;
  *
  * @author lauri
  */
-public class StateHandler<S, E, R> {
+public class StateHandler<S, E> {
 
     Map<E, Deque<EventHandler<S>>> eventMap = new HashMap();
 
-    public void register(E event, Action action, Guard<R> guard, S stateTo) {
+    public void register(E event, Action action, Guard guard, S stateTo) {
         Deque<EventHandler<S>> handlers = handlers(event);
         handlers.addFirst(new EventHandler(action, guard, stateTo));
     }
@@ -41,14 +41,13 @@ public class StateHandler<S, E, R> {
      *
      * @param state 
      * @param event 
-     * @param runtime 
      * @return new state or null if no action taken
      */
-    public S handle(S state, Event<E,Object> event, R runtime) {
+    public S handle(S state, Event<E,Object> event) {
         Collection<EventHandler<S>> handlers = handlers(event.type);
         S stateTo = null;
         for (EventHandler<S> handler : handlers) {
-            if (handler.guard.allow(runtime)) {
+            if (handler.guard.allow(event.payload)) {
                 stateTo = handler.stateTo;
                 handler.action.execute(event.payload);
                 break;

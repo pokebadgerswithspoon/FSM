@@ -17,15 +17,15 @@ import static fsm.Guard.and;
  *
  * @author lauri
  */
-public interface StateSyntax<S, E, R> {
+public interface StateSyntax<S, E> {
 
     public void to(S state2);
 
     public void keepState();
 
-    static class Impl<S, E, R> implements StateSyntax<S, E, R> {
+    static class Impl<S, E> implements StateSyntax<S, E> {
 
-        private TransitionSyntax.Impl<S,E,R> transtition;
+        private TransitionSyntax.Impl<S, E> transtition;
         private Action action;
 
         public Impl(final TransitionSyntax.Impl transition, final Action action) {
@@ -35,7 +35,7 @@ public interface StateSyntax<S, E, R> {
 
         @Override
         public void to(S state) {
-            StateHandler<S, E, R> stateHandler = transtition.handler;
+            StateHandler<S, E> stateHandler = transtition.handler;
             E event = transtition.event;
             Guard guard = transtition.guards == null
                     ? null

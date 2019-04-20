@@ -18,15 +18,15 @@ import java.util.Collection;
  *
  * @author lauri
  */
-public interface TransitionSyntax<S, E, R> {
+public interface TransitionSyntax<S, E> {
 
-    public StateSyntax<S, E, R> transition();
+    public StateSyntax<S, E> transition();
 
-    public StateSyntax<S, E, R> transition(Action action);
+    public StateSyntax<S, E> transition(Action action);
 
-    public TransitionSyntax<S, E, R> onlyIf(Guard<R> guard);
+    public TransitionSyntax<S, E> onlyIf(Guard guard);
 
-    static class Impl<S, E, R> implements TransitionSyntax<S, E, R> {
+    static class Impl<S, E> implements TransitionSyntax<S, E> {
 
         StateHandler handler;
         E event;
@@ -38,12 +38,12 @@ public interface TransitionSyntax<S, E, R> {
         }
 
         @Override
-        public StateSyntax<S, E, R> transition() {
+        public StateSyntax<S, E> transition() {
             return transition(Action.TAKE_NO_ACTION);
         }
 
         @Override
-        public StateSyntax<S, E, R> transition(Action action) {
+        public StateSyntax<S, E> transition(Action action) {
             return new StateSyntax.Impl(this, action);
         }
 

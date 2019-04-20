@@ -12,7 +12,7 @@ package fsm.syntax;
  *
  * @author lauri
  */
-public interface FsmDefinitionSyntax<S,E,R> extends EventSyntax<S, E, R>{
+public interface FsmDefinitionSyntax<S, E> extends EventSyntax<S, E>{
 
-    public EventSyntax<S,E,R> in(S state);
+    public EventSyntax<S, E> in(S state);
 }
