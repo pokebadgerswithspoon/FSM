@@ -30,7 +30,7 @@ public interface Action<R, P> {
         }
     };
 
-    public static <R,P extends Object> Action<R,P> combine(Action<R,P>... actions) {
+    public static <R,P> Action<R,P> combine(Action<R,P>... actions) {
         return (R runtime, P payload) -> {
             for (Action<R,P> action : actions) {
                 action.execute(runtime, payload);
