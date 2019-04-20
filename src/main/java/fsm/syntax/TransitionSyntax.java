@@ -22,7 +22,7 @@ public interface TransitionSyntax<S, E, R> {
 
     public StateSyntax<S, E, R> transition();
 
-    public StateSyntax<S, E, R> transition(Action<S, E, R> action);
+    public StateSyntax<S, E, R> transition(Action<R> action);
 
     public TransitionSyntax<S, E, R> onlyIf(Guard<R> guard);
 

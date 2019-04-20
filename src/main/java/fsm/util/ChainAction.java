@@ -9,7 +9,6 @@
 package fsm.util;
 
 import fsm.Action;
-import fsm.TransitionContext;
 
 /**
  * A chain of actions to execute
@@ -25,9 +24,9 @@ class ChainAction implements Action {
     }
 
     @Override
-    public void execute(Object runtime, TransitionContext transition) {
+    public void execute(Object runtime) {
         for (Action action : chain) {
-            action.execute(runtime, transition);
+            action.execute(runtime);
         }
     }
 }

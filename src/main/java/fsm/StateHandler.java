@@ -22,7 +22,7 @@ public class StateHandler<S, E, R> {
 
     Map<E, Deque<EventHandler<S, E, R>>> eventMap = new HashMap();
 
-    public void register(E event, Action<S, E, R> action, Guard<R> guard, S stateTo) {
+    public void register(E event, Action<R> action, Guard<R> guard, S stateTo) {
         Deque<EventHandler<S, E, R>> handlers = handlers(event);
         handlers.addFirst(new EventHandler(action, guard, stateTo));
     }
@@ -50,7 +50,7 @@ public class StateHandler<S, E, R> {
         for (EventHandler<S, E, R> handler : handlers) {
             if (handler.guard.allow(runtime)) {
                 stateTo = handler.stateTo;
-                handler.action.execute(runtime, new TransitionContext.Impl<S, E>(state, stateTo, event));
+                handler.action.execute(runtime);
                 break;
             }
         }
@@ -59,7 +59,7 @@ public class StateHandler<S, E, R> {
 
     private static class EventHandler<S, E, R> {
 
-        private Action<S, E, R> action;
+        private Action<R> action;
         private Guard guard;
         private S stateTo;
 

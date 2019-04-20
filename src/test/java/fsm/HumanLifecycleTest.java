@@ -45,7 +45,7 @@ public class HumanLifecycleTest {
 
         FsmDefinition<State, Events, HumanBody> human = new FsmDefinition();
 
-        human.on(TICK).transition((body, context) -> {
+        human.on(TICK).transition((body) -> {
             body.ageTicks++;
             body.food--;
             body.tireness++;
