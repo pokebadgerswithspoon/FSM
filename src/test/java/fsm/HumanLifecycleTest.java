@@ -51,7 +51,7 @@ public class HumanLifecycleTest {
             body.tireness++;
             System.out.println("body.food  = " +body.food);
         }).keepState();
-        human.on(TICK).onlyIf((event, state, body) -> body.food < 0).transition().to(DEAD);
+        human.on(TICK).onlyIf((body) -> body.food < 0).transition().to(DEAD);
 
         human.in(INIT).on(BIRTH).transition().to(AWAKE);
         human.in(AWAKE).on(TICK).transition().to(ASLEEP);

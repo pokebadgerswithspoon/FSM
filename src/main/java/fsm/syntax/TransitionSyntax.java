@@ -24,7 +24,7 @@ public interface TransitionSyntax<S, E, R> {
 
     public StateSyntax<S, E, R> transition(Action<S, E, R> action);
 
-    public TransitionSyntax<S, E, R> onlyIf(Guard<S, E, R> guard);
+    public TransitionSyntax<S, E, R> onlyIf(Guard<R> guard);
 
     static class Impl<S, E, R> implements TransitionSyntax<S, E, R> {
 

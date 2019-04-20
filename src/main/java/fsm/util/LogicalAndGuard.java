@@ -19,22 +19,22 @@ import java.util.HashSet;
  *
  * @author lauri
  */
-class LogicalAndGuard<S,E,R> implements Guard<S,E,R> {
+class LogicalAndGuard<R> implements Guard<R> {
 
-    private Collection<Guard<S,E,R>> guards = new HashSet();
+    private Collection<Guard<R>> guards = new HashSet();
 
     public LogicalAndGuard(Guard... guards) {
         this(Arrays.asList(guards));
     }
 
-    public LogicalAndGuard(Collection<Guard<S,E,R>> guards) {
+    public LogicalAndGuard(Collection<Guard<R>> guards) {
         this.guards = guards;
     }
 
     @Override
-    public boolean allow(Event<E> event, S state, R runtime) {
+    public boolean allow(R runtime) {
         for (Guard guard : guards) {
-            if (!guard.allow(event, state, runtime)) {
+            if (!guard.allow(runtime)) {
                 return false;
             }
         }
