@@ -22,18 +22,18 @@ public interface Action<R> {
      * @param runtime can be null
      * @param transition never null
      */
-    public void execute(R runtime);
+    public void execute(R runtime, Event event);
     
     public static final Action TAKE_NO_ACTION = new Action() {
         @Override
-        public void execute(Object runtime) {
+        public void execute(Object runtime, Event event) {
         }
     };
     
     public static <R> Action<R> combine(Action<R> ...actions) {
-        return (R runtime) -> {
+        return (R runtime, Event e) -> {
             for(Action<R> action: actions) {
-                action.execute(runtime);
+                action.execute(runtime, e);
             }
         };
     }

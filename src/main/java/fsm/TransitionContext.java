@@ -18,14 +18,14 @@ public interface TransitionContext<S,E> {
 
     public S getTo();
 
-    public Event<E> getEvent();
+    public Event<E,?> getEvent();
 
     static class Impl<S,E> implements TransitionContext<S,E> {
 
         private S from, to;
-        private Event<E> event;
+        private Event<E,?> event;
 
-        public Impl(S from, S to, Event<E> event) {
+        public Impl(S from, S to, Event<E,?> event) {
             this.from = from;
             // keep state
             this.to = to == null ? from : to;
@@ -43,7 +43,7 @@ public interface TransitionContext<S,E> {
         }
 
         @Override
-        public Event<E> getEvent() {
+        public Event<E,?> getEvent() {
             return event;
         }
 

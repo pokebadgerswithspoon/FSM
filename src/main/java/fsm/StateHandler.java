@@ -44,13 +44,13 @@ public class StateHandler<S, E, R> {
      * @param runtime 
      * @return new state or null if no action taken
      */
-    public S handle(S state, Event<E> event, R runtime) {
-        Collection<EventHandler<S, E, R>> handlers = handlers(event.getType());
+    public S handle(S state, Event<E,?> event, R runtime) {
+        Collection<EventHandler<S, E, R>> handlers = handlers(event.type);
         S stateTo = null;
         for (EventHandler<S, E, R> handler : handlers) {
             if (handler.guard.allow(runtime)) {
                 stateTo = handler.stateTo;
-                handler.action.execute(runtime);
+                handler.action.execute(runtime, event);
                 break;
             }
         }
