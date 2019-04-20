@@ -60,16 +60,16 @@ public class HumanLifecycleTest {
 
         Fsm<State, Events, HumanBody> masha = human.define(new HumanBody(), INIT);
 
-        masha.handle(new Event(BIRTH));
+        masha.handle(BIRTH);
         assertEquals(AWAKE, masha.getState());
-        masha.handle(new Event(TICK));
+        masha.handle(TICK);
 
-        masha.handle(new Event(BIRTH));
+        masha.handle(BIRTH);
 
         assertTrue(masha.getRuntime().ageTicks > 0);
 
         for (int i = 0; i < 15; i++) {
-            masha.handle(new Event(TICK));
+            masha.handle(TICK);
         }
         assertEquals(DEAD, masha.getState());
     }

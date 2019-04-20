@@ -12,7 +12,7 @@ package fsm;
  *
  * @author lauri
  */
-public class Event<E, P> {
+class Event<E, P> {
 
     public final E type;
     public final P payload;
