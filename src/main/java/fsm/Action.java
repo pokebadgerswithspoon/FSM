@@ -13,7 +13,7 @@ package fsm;
  *
  * @author lauri
  */
-public interface Action<R, P> {
+public interface Action<P> {
 
     /**
      * Action taken on transition. Executed even if FSM definition asked to keep
@@ -22,18 +22,15 @@ public interface Action<R, P> {
      * @param runtime can be null
      * @param transition never null
      */
-    public void execute(R runtime, P payload);
+    public void execute(P payload);
 
-    public static final Action TAKE_NO_ACTION = new Action() {
-        @Override
-        public void execute(Object runtime, Object event) {
-        }
+    public static final Action TAKE_NO_ACTION = (Action) (Object payload) -> {
     };
 
-    public static <R,P extends Object> Action<R,P> combine(Action<R,P>... actions) {
-        return (R runtime, P payload) -> {
-            for (Action<R,P> action : actions) {
-                action.execute(runtime, payload);
+    public static <P> Action<P> combine(Action<P>... actions) {
+        return (P payload) -> {
+            for (Action<P> action : actions) {
+                action.execute(payload);
             }
         };
     }

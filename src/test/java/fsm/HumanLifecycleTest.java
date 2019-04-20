@@ -43,22 +43,23 @@ public class HumanLifecycleTest {
     @Test
     public void testBabyFsm() {
 
+        HumanBody body = new HumanBody();
         FsmDefinition<State, Events, HumanBody> human = new FsmDefinition();
 
-        human.on(TICK).transition((body, event) -> {
+        human.on(TICK).transition((p) -> {
             body.ageTicks++;
             body.food--;
             body.tireness++;
             System.out.println("body.food  = " +body.food);
         }).keepState();
-        human.on(TICK).onlyIf((body) -> body.food < 0).transition().to(DEAD);
+        human.on(TICK).onlyIf((p) -> body.food < 0).transition().to(DEAD);
 
         human.in(INIT).on(BIRTH).transition().to(AWAKE);
         human.in(AWAKE).on(TICK).transition().to(ASLEEP);
         human.in(ASLEEP).on(WAKE).transition().to(AWAKE);
 
 
-        Fsm<State, Events, HumanBody> masha = human.define(new HumanBody(), INIT);
+        Fsm<State, Events, HumanBody> masha = human.define(body, INIT);
 
         masha.handle(new Event(BIRTH));
         assertEquals(AWAKE, masha.getState());

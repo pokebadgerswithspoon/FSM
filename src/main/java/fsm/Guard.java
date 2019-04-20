@@ -15,13 +15,13 @@ import java.util.Collection;
  *
  * @author lauri
  */
-public interface Guard<R> {
+public interface Guard<P> {
 
-    public boolean allow(R runtime);
+    public boolean allow(P payload);
 
     static final Guard ALLOW = new Guard() {
         @Override
-        public boolean allow(Object runtime) {
+        public boolean allow(Object payload) {
             return true;
         }
     };
@@ -29,8 +29,8 @@ public interface Guard<R> {
     public static Guard not(Guard guard) {
         return new Guard() {
             @Override
-            public boolean allow(Object runtime) {
-                return !guard.allow(runtime);
+            public boolean allow(Object payload) {
+                return !guard.allow(payload);
             }
         };
     }
@@ -41,9 +41,9 @@ public interface Guard<R> {
         }
         return new Guard() {
             @Override
-            public boolean allow(Object runtime) {
+            public boolean allow(Object payload) {
                 for (Guard guard : guards) {
-                    if (!guard.allow(runtime)) {
+                    if (!guard.allow(payload)) {
                         return false;
                     }
                 }

@@ -20,15 +20,15 @@ import java.util.Map;
  */
 public class StateHandler<S, E, R> {
 
-    Map<E, Deque<EventHandler<S, E, R>>> eventMap = new HashMap();
+    Map<E, Deque<EventHandler<S>>> eventMap = new HashMap();
 
-    public void register(E event, Action<R,E> action, Guard<R> guard, S stateTo) {
-        Deque<EventHandler<S, E, R>> handlers = handlers(event);
+    public void register(E event, Action action, Guard<R> guard, S stateTo) {
+        Deque<EventHandler<S>> handlers = handlers(event);
         handlers.addFirst(new EventHandler(action, guard, stateTo));
     }
 
-    private Deque<EventHandler<S, E, R>> handlers(E event) {
-        Deque<EventHandler<S, E, R>> result = eventMap.get(event);
+    private Deque<EventHandler<S>> handlers(E event) {
+        Deque<EventHandler<S>> result = eventMap.get(event);
         if (result == null) {
             result = new LinkedList<>();
             eventMap.put(event, result);
@@ -45,23 +45,23 @@ public class StateHandler<S, E, R> {
      * @return new state or null if no action taken
      */
     public S handle(S state, Event<E,Object> event, R runtime) {
-        Collection<EventHandler<S, E, R>> handlers = handlers(event.type);
+        Collection<EventHandler<S>> handlers = handlers(event.type);
         S stateTo = null;
-        for (EventHandler<S, E, R> handler : handlers) {
+        for (EventHandler<S> handler : handlers) {
             if (handler.guard.allow(runtime)) {
                 stateTo = handler.stateTo;
-                handler.action.execute(runtime, event.payload);
+                handler.action.execute(event.payload);
                 break;
             }
         }
         return stateTo == null ? state : stateTo;
     }
 
-    private static class EventHandler<S, E, R> {
+    private static class EventHandler<S> {
 
-        private Action<R,Object> action;
-        private Guard guard;
-        private S stateTo;
+        Action action;
+        Guard guard;
+        S stateTo;
 
         EventHandler(Action action, Guard guard, S stateTo) {
             this.action = action == null ? Action.TAKE_NO_ACTION : action;
