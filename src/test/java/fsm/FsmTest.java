@@ -17,10 +17,10 @@ import static org.junit.Assert.assertEquals;
  */
 public class FsmTest {
 
-    static Action<Runtime> increment = (runtime, e) -> {
+    static Action<Runtime, Object> increment = (runtime, e) -> {
         runtime.knock++;
     };
-    static Action<Runtime> log = (runtime, e) -> {
+    static Action<Runtime, Object> log = (runtime, e) -> {
         System.out.println("Knock "+ runtime.knock);
     };
 
@@ -28,10 +28,13 @@ public class FsmTest {
     public void testDoubleMatchWithKeepState() {
 
         FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
-        Action<Runtime> increment = (Runtime runtime, Event e) -> {
+        Action<Runtime, ?> increment = (runtime, e) -> {
             runtime.knock++;
         };
-        Action<Runtime> action = Action.combine(increment, log);
+        Action<Runtime, ?> action = (runtime, payload) -> {
+            increment.execute(runtime, null);
+            log.execute(runtime, null);
+        };
         
         rules.on("KNOCK").transition(action).keepState();
         rules.in("INIT").on("KNOCK").transition(action).keepState();
