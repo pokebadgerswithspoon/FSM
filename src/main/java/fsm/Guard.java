@@ -15,24 +15,14 @@ import java.util.Collection;
  *
  * @author lauri
  */
-public interface Guard<R> {
+public interface Guard<R, P> {
 
-    public boolean allow(R runtime);
+    public boolean allow(R runtime, P payload);
 
-    static final Guard ALLOW = new Guard() {
-        @Override
-        public boolean allow(Object runtime) {
-            return true;
-        }
-    };
+    static final Guard ALLOW = (Guard) (Object runtime, Object payload) -> true;
 
     public static Guard not(Guard guard) {
-        return new Guard() {
-            @Override
-            public boolean allow(Object runtime) {
-                return !guard.allow(runtime);
-            }
-        };
+        return (Guard) (Object runtime, Object payload) -> !guard.allow(runtime, payload);
     }
 
     public static Guard and(Collection<Guard> guards) {
@@ -41,9 +31,9 @@ public interface Guard<R> {
         }
         return new Guard() {
             @Override
-            public boolean allow(Object runtime) {
+            public boolean allow(Object runtime, Object payload) {
                 for (Guard guard : guards) {
-                    if (!guard.allow(runtime)) {
+                    if (!guard.allow(runtime, payload)) {
                         return false;
                     }
                 }

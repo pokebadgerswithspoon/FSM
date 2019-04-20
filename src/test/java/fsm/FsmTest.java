@@ -17,10 +17,10 @@ import static org.junit.Assert.assertEquals;
  */
 public class FsmTest {
 
-    static Action<Runtime, Object> increment = (runtime, e) -> {
+    static Action<Runtime, ?> increment = (runtime, e) -> {
         runtime.knock++;
     };
-    static Action<Runtime, Object> log = (runtime, e) -> {
+    static Action<Runtime, ?> log = (runtime, e) -> {
         System.out.println("Knock "+ runtime.knock);
     };
 
@@ -28,10 +28,10 @@ public class FsmTest {
     public void testDoubleMatchWithKeepState() {
 
         FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
-        Action<Runtime, ?> increment = (runtime, e) -> {
+        Action<Runtime, ?> increment = (runtime, payload) -> {
             runtime.knock++;
         };
-        Action<Runtime, ?> action = (runtime, payload) -> {
+        Action<Runtime, Integer> action = (runtime, payload) -> {
             increment.execute(runtime, null);
             log.execute(runtime, null);
         };
@@ -54,13 +54,12 @@ public class FsmTest {
         rules.on("KNOCK").transition(increment).keepState();
         rules.in("INIT").on("KNOCK").transition(increment).to("THE END");
 
-        Runtime runtime = new Runtime();
-        Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
+        Fsm<String, String, Runtime> fsm = rules.define(new Runtime(), "INIT");
 
         fsm.handle(new Event("KNOCK"));
         fsm.handle(new Event("KNOCK"));
 
-        assertEquals(3, runtime.knock);
+        assertEquals(3, fsm.getRuntime().knock);
         assertEquals("THE END", fsm.getState());
     }
     

@@ -22,7 +22,7 @@ public class StateHandler<S, E, R> {
 
     Map<E, Deque<EventHandler<S, E, R>>> eventMap = new HashMap();
 
-    public void register(E event, Action<R,E> action, Guard<R> guard, S stateTo) {
+    public void register(E event, Action<R,?> action, Guard<R,?> guard, S stateTo) {
         Deque<EventHandler<S, E, R>> handlers = handlers(event);
         handlers.addFirst(new EventHandler(action, guard, stateTo));
     }
@@ -48,7 +48,7 @@ public class StateHandler<S, E, R> {
         Collection<EventHandler<S, E, R>> handlers = handlers(event.type);
         S stateTo = null;
         for (EventHandler<S, E, R> handler : handlers) {
-            if (handler.guard.allow(runtime)) {
+            if (handler.guard.allow(runtime, event.payload)) {
                 stateTo = handler.stateTo;
                 handler.action.execute(runtime, event.payload);
                 break;

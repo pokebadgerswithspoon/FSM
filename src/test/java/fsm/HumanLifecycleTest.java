@@ -45,13 +45,13 @@ public class HumanLifecycleTest {
 
         FsmDefinition<State, Events, HumanBody> human = new FsmDefinition();
 
-        human.on(TICK).transition((body, event) -> {
+        human.on(TICK).transition((body, p) -> {
             body.ageTicks++;
             body.food--;
             body.tireness++;
             System.out.println("body.food  = " +body.food);
         }).keepState();
-        human.on(TICK).onlyIf((body) -> body.food < 0).transition().to(DEAD);
+        human.on(TICK).onlyIf((body, payload) ->  body.food < 0).transition().to(DEAD);
 
         human.in(INIT).on(BIRTH).transition().to(AWAKE);
         human.in(AWAKE).on(TICK).transition().to(ASLEEP);
