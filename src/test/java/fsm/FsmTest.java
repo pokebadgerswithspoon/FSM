@@ -38,7 +38,7 @@ public class FsmTest {
         Runtime runtime = new Runtime();
         Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
 
-        fsm.handle(new Event("KNOCK", 1234));
+        fsm.handle("KNOCK", 1234);
 
         assertEquals(2, runtime.knock);
     }
@@ -52,8 +52,8 @@ public class FsmTest {
 
         Fsm<String, String, Runtime> fsm = rules.define(new Runtime(), "INIT");
 
-        fsm.handle(new Event("KNOCK"));
-        fsm.handle(new Event("KNOCK"));
+        fsm.handle("KNOCK");
+        fsm.handle("KNOCK");
 
         assertEquals(3, fsm.getRuntime().knock);
         assertEquals("THE END", fsm.getState());
@@ -69,8 +69,8 @@ public class FsmTest {
         Runtime runtime = new Runtime();
         Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
 
-        fsm.handle(new Event("KNOCK"));
-        fsm.handle(new Event("KNOCK"));
+        fsm.handle("KNOCK");
+        fsm.handle("KNOCK");
 
         assertEquals(1, runtime.knock);
         assertEquals("THE END", fsm.getState());
