@@ -45,13 +45,13 @@ public class HumanLifecycleTest {
 
         FsmDefinition<State, Events, HumanBody> human = new FsmDefinition();
 
-        human.on(TICK).transition((body, context) -> {
+        human.on(TICK).transition((body, p) -> {
             body.ageTicks++;
             body.food--;
             body.tireness++;
             System.out.println("body.food  = " +body.food);
         }).keepState();
-        human.on(TICK).onlyIf((event, state, body) -> body.food < 0).transition().to(DEAD);
+        human.on(TICK).onlyIf((body, payload) ->  body.food < 0).transition().to(DEAD);
 
         human.in(INIT).on(BIRTH).transition().to(AWAKE);
         human.in(AWAKE).on(TICK).transition().to(ASLEEP);
@@ -60,16 +60,16 @@ public class HumanLifecycleTest {
 
         Fsm<State, Events, HumanBody> masha = human.define(new HumanBody(), INIT);
 
-        masha.handle(new Event.Impl(BIRTH));
+        masha.handle(new Event(BIRTH));
         assertEquals(AWAKE, masha.getState());
-        masha.handle(new Event.Impl(TICK));
+        masha.handle(new Event(TICK));
 
-        masha.handle(new Event.Impl(BIRTH));
+        masha.handle(new Event(BIRTH));
 
         assertTrue(masha.getRuntime().ageTicks > 0);
 
         for (int i = 0; i < 15; i++) {
-            masha.handle(new Event.Impl(TICK));
+            masha.handle(new Event(TICK));
         }
         assertEquals(DEAD, masha.getState());
     }

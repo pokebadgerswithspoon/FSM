@@ -8,17 +8,40 @@
  */
 package fsm;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 /**
  *
  * @author lauri
  */
-public interface Guard<S, E, R> {
+public interface Guard<R, P> {
 
-    public boolean allow(Event<E> event, S state, R runtime);
-    public static final Guard ALLOW = new Guard() {
-        @Override
-        public boolean allow(Event event, Object state, Object runtime) {
-            return true;
+    public boolean allow(R runtime, P payload);
+
+    static final Guard ALLOW = (Guard) (Object runtime, Object payload) -> true;
+
+    public static Guard not(Guard guard) {
+        return (Guard) (Object runtime, Object payload) -> !guard.allow(runtime, payload);
+    }
+
+    public static Guard and(Collection<Guard> guards) {
+        if(guards.size() == 1) {
+            return guards.iterator().next();
         }
-    };
+        return new Guard() {
+            @Override
+            public boolean allow(Object runtime, Object payload) {
+                for (Guard guard : guards) {
+                    if (!guard.allow(runtime, payload)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        };
+    }
+    public static Guard and(Guard... guards) {
+        return and(Arrays.asList(guards));
+    }
 }

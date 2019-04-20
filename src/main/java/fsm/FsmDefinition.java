@@ -72,7 +72,7 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         }
 
         @Override
-        public void handle(Event<E> event) {
+        public void handle(Event<E,Object> event) {
             Iterable<StateHandler<S, E, R>> handlers = iterableNonNulls(anyStateHandler, stateHandlers.get(currentState));
             
             for(StateHandler<S, E, R> handler: handlers) {

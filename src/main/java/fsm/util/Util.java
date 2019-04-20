@@ -1,7 +1,10 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Util.java
+ * Created on 20 Apr 2019 12:39:09
+ * by lauri
+ *
+ * Copyright(c) 2019.  All Rights Reserved. ☣
+ * This software is the proprietary information.
  */
 package fsm.util;
 

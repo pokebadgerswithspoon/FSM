@@ -11,8 +11,7 @@ package fsm.syntax;
 import fsm.StateHandler;
 import fsm.Action;
 import fsm.Guard;
-import fsm.util.Guards;
-import java.util.Collection;
+import static fsm.Guard.and;
 
 /**
  *
@@ -38,23 +37,15 @@ public interface StateSyntax<S, E, R> {
         public void to(S state) {
             StateHandler<S, E, R> stateHandler = transtition.handler;
             E event = transtition.event;
-            Guard guard = guard(transtition.guards);
+            Guard guard = transtition.guards == null
+                    ? null
+                    : and(transtition.guards);
             stateHandler.register(event, action, guard, state);
         }
 
         @Override
         public void keepState() {
             to(null);
-        }
-
-        private Guard guard(Collection<Guard> guards) {
-            if (guards == null || guards.isEmpty()) {
-                return null;
-            } else if (guards.size() == 1) {
-                return guards.iterator().next();
-            } else {
-                return Guards.AND(guards);
-            }
         }
     }
 

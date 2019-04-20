@@ -22,7 +22,7 @@ public class StateHandler<S, E, R> {
 
     Map<E, Deque<EventHandler<S, E, R>>> eventMap = new HashMap();
 
-    public void register(E event, Action<S, E, R> action, Guard<S, E, R> guard, S stateTo) {
+    public void register(E event, Action<R,?> action, Guard<R,?> guard, S stateTo) {
         Deque<EventHandler<S, E, R>> handlers = handlers(event);
         handlers.addFirst(new EventHandler(action, guard, stateTo));
     }
@@ -44,13 +44,13 @@ public class StateHandler<S, E, R> {
      * @param runtime 
      * @return new state or null if no action taken
      */
-    public S handle(S state, Event<E> event, R runtime) {
-        Collection<EventHandler<S, E, R>> handlers = handlers(event.getType());
+    public S handle(S state, Event<E,Object> event, R runtime) {
+        Collection<EventHandler<S, E, R>> handlers = handlers(event.type);
         S stateTo = null;
         for (EventHandler<S, E, R> handler : handlers) {
-            if (handler.guard.allow(event, state, runtime)) {
+            if (handler.guard.allow(runtime, event.payload)) {
                 stateTo = handler.stateTo;
-                handler.action.execute(runtime, new TransitionContext.Impl<S, E>(state, stateTo, event));
+                handler.action.execute(runtime, event.payload);
                 break;
             }
         }
@@ -59,7 +59,7 @@ public class StateHandler<S, E, R> {
 
     private static class EventHandler<S, E, R> {
 
-        private Action<S, E, R> action;
+        private Action<R,Object> action;
         private Guard guard;
         private S stateTo;
 
