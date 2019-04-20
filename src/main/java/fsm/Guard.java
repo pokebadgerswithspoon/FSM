@@ -8,6 +8,9 @@
  */
 package fsm;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 /**
  *
  * @author lauri
@@ -15,8 +18,8 @@ package fsm;
 public interface Guard<R> {
 
     public boolean allow(R runtime);
-    
-    public static final Guard ALLOW = new Guard() {
+
+    static final Guard ALLOW = new Guard() {
         @Override
         public boolean allow(Object runtime) {
             return true;
@@ -24,7 +27,7 @@ public interface Guard<R> {
     };
 
     public static Guard not(Guard guard) {
-        return new AbstractWrap(guard) {
+        return new Guard() {
             @Override
             public boolean allow(Object runtime) {
                 return !guard.allow(runtime);
@@ -32,13 +35,23 @@ public interface Guard<R> {
         };
     }
 
-    static abstract class AbstractWrap<R> implements Guard<R> {
-
-        protected final Guard<R> guard;
-
-        public AbstractWrap(Guard<R> guard) {
-            this.guard = guard;
+    public static Guard and(Collection<Guard> guards) {
+        if(guards.size() == 1) {
+            return guards.iterator().next();
         }
+        return new Guard() {
+            @Override
+            public boolean allow(Object runtime) {
+                for (Guard guard : guards) {
+                    if (!guard.allow(runtime)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        };
     }
-
+    public static Guard and(Guard... guards) {
+        return and(Arrays.asList(guards));
+    }
 }
