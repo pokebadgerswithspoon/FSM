@@ -30,9 +30,9 @@ public interface Action<R, P> {
         }
     };
 
-    public static <R,P> Action<R,P> combine(Action<R,P>... actions) {
-        return (R runtime, P payload) -> {
-            for (Action<R,P> action : actions) {
+    public static Action combine(Action... actions) {
+        return (Object runtime, Object payload) -> {
+            for (Action action : actions) {
                 action.execute(runtime, payload);
             }
         };
