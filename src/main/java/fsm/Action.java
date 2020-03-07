@@ -24,15 +24,11 @@ public interface Action<R, P> {
      */
     public void execute(R runtime, P payload);
 
-    public static final Action TAKE_NO_ACTION = new Action() {
-        @Override
-        public void execute(Object runtime, Object event) {
-        }
-    };
+    public static final Action TAKE_NO_ACTION = (runtime, payload) -> {};
 
-    public static Action combine(Action... actions) {
-        return (Object runtime, Object payload) -> {
-            for (Action action : actions) {
+    public static <R, P> Action<R, P> combine(Action<R, P>... actions) {
+        return (R runtime, P payload) -> {
+            for (Action<R, P> action : actions) {
                 action.execute(runtime, payload);
             }
         };

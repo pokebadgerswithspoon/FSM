@@ -55,7 +55,12 @@ public class HumanLifecycleTest {
 
         human.in(INIT).on(BIRTH).transition().to(AWAKE);
         human.in(AWAKE).on(TICK).transition().to(ASLEEP);
+        human.in(AWAKE).on(EAT).transition((body, p) -> {
+            body.food++;
+        }).keepState();
         human.in(ASLEEP).on(WAKE).transition().to(AWAKE);
+
+        human.in(AWAKE).on(TICK).transition().to(ASLEEP);
 
 
         Fsm<State, Events, HumanBody> masha = human.define(new HumanBody(), INIT);
