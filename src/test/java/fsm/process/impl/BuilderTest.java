@@ -1,25 +1,24 @@
-package fsm.process;
+package fsm.process.impl;
 
 import fsm.Action;
 import fsm.Fsm;
 import fsm.FsmDefinition;
 import fsm.Guard;
+import fsm.process.Process;
 import fsm.process.Process.Ref;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static fsm.process.ChooseSyntax.choose;
-import static fsm.process.Process.start;
-import static fsm.process.StayExitClause.exit;
+import static fsm.process.impl.ProcessImpl.start;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -80,7 +79,7 @@ public class BuilderTest {
 
     @Test
     public void loopExample() {
-        Ref refA = new Ref();
+        Ref refA = new RefImpl();
         start()
                 .then(A, refA)
                 .then(B)
@@ -89,12 +88,11 @@ public class BuilderTest {
 
     @Test
     public void eventExample() {
-        Ref refB = new Ref("Ref B");
+        Ref refB = new RefImpl("Ref B");
         FsmDefinition fsmDefinition = start()
                 .then(A)
                 .stay(
-                        exit()
-                        .on("event", refB)
+                        (exit) -> exit.on("event", refB)
                 )
                 .add(refB)
                 .then(B)
@@ -108,12 +106,13 @@ public class BuilderTest {
 
     @Test
     public void eventsExample() {
+
         FsmDefinition fsmDefinition = start()
                 .then(A)
                 .stay(
-                        exit()
-                                .on("timeout", (b) -> b.end())
-                                .on("hello", (b) -> b.then(B).end())
+                        (exit) -> exit
+                                .on("timeout", (Consumer<Process>) (b) -> b.end())
+                                .on("hello", (Consumer<Process>) (b) -> b.then(B).end())
                 )
                 .end();
         assertEquals(6, fsmDefinition.states().size());
@@ -128,11 +127,11 @@ public class BuilderTest {
     @Test
     public void chooseExample() {
         Action E = (r, p) -> log.info("E");
-        Ref refE = new Ref("Stage E");
+        Ref refE = new RefImpl("Stage E");
         FsmDefinition fsmDefinition = start()
                 .then(A)
                 .choose(
-                        choose()
+                        (choose) -> choose
                                 .when(Guard.ALLOW, (b) -> b.then(B).go(refE))
                                 .otherwise((b) -> b.go(refE))
                 )
