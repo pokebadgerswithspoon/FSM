@@ -141,6 +141,5 @@ public class BuilderTest {
                 .end();
 
         assertEquals(6, fsmDefinition.states().size());
-
     }
 }
