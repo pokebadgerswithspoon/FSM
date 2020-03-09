@@ -16,12 +16,8 @@ import java.util.function.Consumer;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-@RequiredArgsConstructor
 public class Process {
 
-    static final Object ENTER = "ENTER";
-    private static final Object TIMEOUT = "TIMEOUT";
-    private Object entered = ENTER;
     private int currentState = 0;
     private int lastKnownState = 0;
     private final FsmDefinition definition;
@@ -29,16 +25,23 @@ public class Process {
 
     private List<Runnable> onEnd = new ArrayList<>();
     private final Ref endRef = new Ref("END");
-    private final Ref startRef = new Ref("START");
+    private final Ref startRef;
 
     private static final Action GO = Action.TAKE_NO_ACTION;
 
     static Process start() {
-
-        Process process = new Process(new FsmDefinition());
-        process.startRef.assigned = true;
-        process.startRef.state = process.currentState;
+        return start(new Ref("START"));
+    }
+    static Process start(Ref startRef) {
+        Process process = new Process(new FsmDefinition(), startRef);
         return process;
+    }
+
+    private Process(FsmDefinition definition, Ref startRef) {
+        this.startRef = startRef;
+        startRef.assigned = true;
+        startRef.state = currentState;
+        this.definition = definition;
     }
 
     private Process on(Object event, Action action, Ref ref) {
@@ -74,8 +77,13 @@ public class Process {
         for(Map.Entry<Object, Consumer<Process>> entry: exitClause.bldr.entrySet()) {
             final Object event = entry.getKey();
             final Consumer<Process> processConsumer = entry.getValue();
+
             onEnd.add(() -> {
-                processConsumer.accept(this);
+                int state = this.currentState;
+                this.currentState = s;
+                Ref r = new Ref();
+                processConsumer.accept(this.add(r).on(event, Action.TAKE_NO_ACTION, r));
+                this.currentState = state;
             });
         }
         for(Map.Entry<Object, Ref> entry: exitClause.exits.entrySet()) {
@@ -127,13 +135,11 @@ public class Process {
         for(ChooseSyntax.Option option: chooseSyntax.options) {
             onEnd.add(() -> {
                 int prevS = this.currentState;
-                Object prevE = this.entered;
                 this.currentState = s;
                 this.guard = option.guard;
                 option.consumer.accept(this);
                 this.guard = null;
                 this.currentState = prevS;
-                this.entered = prevE;
             });
         }
         return this;
@@ -145,7 +151,7 @@ public class Process {
     @RequiredArgsConstructor(access = AccessLevel.PUBLIC)
     @ToString
     public static class Ref {
-        private int state;
+        public int state;
         private boolean assigned = false;
         private final String name;
 
