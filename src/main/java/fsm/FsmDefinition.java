@@ -11,12 +11,18 @@ package fsm;
 import fsm.syntax.EventSyntax;
 import fsm.syntax.FsmDefinitionSyntax;
 import fsm.syntax.TransitionSyntax;
+
 import static fsm.util.Util.iterableNonNulls;
+import static java.util.Optional.ofNullable;
+
+import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
- *
  * @author lauri
  */
 public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
@@ -32,6 +38,10 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
     public EventSyntax<S, E, R> in(S state) {
         StateHandler handler = handler(state);
         return new EventSyntax.Impl(handler);
+    }
+
+    public void registerState(S state) {
+        handler(state);
     }
 
     @Override
@@ -56,6 +66,20 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         return fsm;
     }
 
+    public boolean hasHandler(S state, E event) {
+        return ofNullable(state)
+                .map(stateHandlers::get)
+                .flatMap(h ->
+                        ofNullable(event)
+                                .map(e -> h.knowsHowToHandle(e))
+                )
+                .orElse(false);
+    }
+
+    public Set<S> states() {
+        return stateHandlers.keySet();
+    }
+
     private class FsmImpl implements Fsm<S, E, R> {
 
         private final R runtime;
@@ -75,14 +99,15 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         public void handle(E event) {
             handle(new Event(event));
         }
+
         @Override
         public <P> void handle(E event, P payload) {
             handle(new Event(event, payload));
         }
 
-        void handle(Event<E,Object> e) {
+        void handle(Event<E, Object> e) {
             Iterable<StateHandler<S, E, R>> handlers = iterableNonNulls(anyStateHandler, stateHandlers.get(currentState));
-            for(StateHandler<S, E, R> handler: handlers) {
+            for (StateHandler<S, E, R> handler : handlers) {
                 S newState = handler.handle(currentState, e, runtime);
                 if (!currentState.equals(newState)) {
                     currentState = newState;

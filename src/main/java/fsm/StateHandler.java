@@ -57,6 +57,10 @@ public class StateHandler<S, E, R> {
         return stateTo == null ? state : stateTo;
     }
 
+    public boolean knowsHowToHandle(E event) {
+        return eventMap.containsKey(event) && !eventMap.get(event).isEmpty();
+    }
+
     private static class EventHandler<S, E, R> {
 
         private Action<R,Object> action;
