@@ -40,6 +40,10 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         return new EventSyntax.Impl(handler);
     }
 
+    public void registerState(S state) {
+        handler(state);
+    }
+
     @Override
     public TransitionSyntax<S, E, R> on(E event) {
         return new TransitionSyntax.Impl(anyStateHandler, event);
