@@ -140,7 +140,6 @@ public class BuilderTest {
                 .then(E)
                 .end();
 
-        assertEquals(5, fsmDefinition.states().size());
-
+        assertEquals(6, fsmDefinition.states().size());
     }
 }
