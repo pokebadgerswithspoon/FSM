@@ -7,6 +7,7 @@ import fsm.Builder.Ref;
 import static fsm.Builder.start;
 import static fsm.ChooseSyntax.choose;
 import static fsm.StayExitClause.exit;
+import static org.junit.Assert.assertEquals;
 
 @Slf4j
 public class BuilderTest {
@@ -43,18 +44,15 @@ public class BuilderTest {
 
     @Test
     public void eventExample() {
-        Ref refB = new Ref();
         FsmDefinition fsmDefinition = start()
                 .then(A)
                 .stay(
                         exit()
-                                .on("timeout", (b) -> b.end())
+                                .on("timeout", (b) -> b.then(B).end())
                 )
-                .add(B, refB)
                 .end();
-
-        Fsm fsm = fsmDefinition.define(null, 0);
-        run(fsm, fsmDefinition);
+//        assertEquals(2, fsmDefinition.states().size());
+        run(fsmDefinition);
     }
 
 
@@ -64,12 +62,20 @@ public class BuilderTest {
                 .then(A)
                 .then(B)
                 .end();
-        Fsm fsm = def.define(null, 0);
-        run(fsm, def);
+        run(def);
 
     }
 
-    private void run(Fsm fsm, FsmDefinition def) {
+    @Test
+    public void emptyExample() {
+        FsmDefinition def = start()
+                .end();
+        run(def);
+
+    }
+
+    private void run(FsmDefinition def) {
+        Fsm fsm = def.define(null, 0);
         while (def.hasHandler(fsm.getState(), Builder.ENTER)) {
             fsm.handle(Builder.ENTER);
         }

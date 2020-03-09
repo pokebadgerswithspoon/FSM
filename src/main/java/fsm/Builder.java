@@ -14,7 +14,7 @@ import static java.util.Objects.requireNonNull;
 public class Builder {
     static final Object ENTER = "ENTER";
     private static final Object TIMEOUT = "TIMEOUT";
-    private Object enter = ENTER;
+    private Object entered = ENTER;
     private int currentState = 0;
     private int lastKnownState = 0;
     private final FsmDefinition definition;
@@ -36,9 +36,9 @@ public class Builder {
             ref.state = ++lastKnownState;
         }
         if(guard == null) {
-            definition.in(currentState).on(enter).transition(action).to(ref.state);
+            definition.in(currentState).on(entered).transition(action).to(ref.state);
         } else {
-            definition.in(currentState).on(enter).onlyIf(guard).transition(action).to(ref.state);
+            definition.in(currentState).on(entered).onlyIf(guard).transition(action).to(ref.state);
         }
         currentState = ref.state;
         return this;
@@ -56,16 +56,17 @@ public class Builder {
     }
 
     Builder stay(StayExitClause exitClause) {
+//        definition.in(currentState).on("stay").transition(Action.TAKE_NO_ACTION).keepState();
         final int s = this.currentState;
         for(StayExitClause.Clause clause: exitClause.list) {
             onEnd.add(() -> {
                 int prevS = this.currentState;
-                Object prevE = this.enter;
+                Object prevE = this.entered;
                 this.currentState = s;
-                this.enter =  clause.event;
+                this.entered =  clause.event;
                 clause.b.accept(this);
                 this.currentState = prevS;
-                this.enter = prevE;
+                this.entered = prevE;
             });
         }
         return this;
@@ -75,6 +76,7 @@ public class Builder {
     private boolean onEndRunning = false;
     public FsmDefinition end() {
         if(onEndRunning) {
+//            definition.in(currentState).on(entered).transition(Action.TAKE_NO_ACTION).to(endRef);
             return null;
         }
         onEndRunning = true;
@@ -85,7 +87,7 @@ public class Builder {
     }
 
     public void go(Ref ref) {
-        definition.in(currentState).on(ENTER).transition().to(ref.state);
+        definition.in(currentState).on(entered).transition().to(ref.state);
     }
 
     public Builder choose(ChooseSyntax chooseSyntax) {
@@ -93,13 +95,13 @@ public class Builder {
         for(ChooseSyntax.Option option: chooseSyntax.options) {
             onEnd.add(() -> {
                 int prevS = this.currentState;
-                Object prevE = this.enter;
+                Object prevE = this.entered;
                 this.currentState = s;
                 this.guard = option.guard;
                 option.consumer.accept(this);
                 this.guard = null;
                 this.currentState = prevS;
-                this.enter = prevE;
+                this.entered = prevE;
             });
         }
         return this;

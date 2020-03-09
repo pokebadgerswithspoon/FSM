@@ -15,9 +15,12 @@ import fsm.syntax.TransitionSyntax;
 import static fsm.util.Util.iterableNonNulls;
 import static java.util.Optional.ofNullable;
 
+import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author lauri
@@ -67,6 +70,10 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
                                 .map(e -> h.knowsHowToHandle(e))
                 )
                 .orElse(false);
+    }
+
+    public Set<S> states() {
+        return stateHandlers.keySet();
     }
 
     private class FsmImpl implements Fsm<S, E, R> {
