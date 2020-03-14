@@ -1,4 +1,4 @@
-package fsm.process.impl;
+package fsm.process;
 
 import fsm.Action;
 import fsm.Fsm;
@@ -15,6 +15,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static fsm.process.ChooseSyntax.choose;
+import static fsm.process.StaySyntax.exit;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,8 +35,8 @@ public class BuilderTest {
     @Test
     public void emptyExample() {
         FsmDefinition def = new Process()
-                .start()
-                .end();
+            .start()
+            .end();
         assertEquals(2, def.states().size());
 
         run(def);
@@ -47,8 +50,8 @@ public class BuilderTest {
     @Test
     public void plainExample() {
         FsmDefinition def = new Process().start()
-                .then(A)
-                .end();
+            .then(A)
+            .end();
         assertEquals(3, def.states().size());
 
         log(def);
@@ -61,10 +64,10 @@ public class BuilderTest {
     public void loopExample() {
         Ref refA = new Ref();
         new Process()
-                .start()
-                .then(A, refA)
-                .then(B)
-                .go(refA);
+            .start()
+            .then(A, refA)
+            .then(B)
+            .go(refA);
     }
 
     @Test(expected = ProcessDidNotEndException.class)
@@ -73,9 +76,9 @@ public class BuilderTest {
         Process process = new Process();
 
         FsmDefinition fsmDefinition = process
-                .start()
-                .add(refB)
-                .end();
+            .start()
+            .add(refB)
+            .end();
 
         assertEquals(3, fsmDefinition.states().size());
         log(process);
@@ -88,14 +91,14 @@ public class BuilderTest {
         Ref refB = new Ref("Ref B");
         Process process = new Process();
         FsmDefinition fsmDefinition = process
-                .start()
-                .then(A)
-                .stay(
-                        exit()
-                                .on("event", refB)
-                )
-                .add(refB)
-                .end();
+            .start()
+            .then(A)
+            .stay(
+                exit()
+                    .on("event", refB)
+            )
+            .add(refB)
+            .end();
 //        assertEquals(4, fsmDefinition.states().size());
 
         log(process);
@@ -109,14 +112,14 @@ public class BuilderTest {
     public void eventsExample() {
         Process process = new Process();
         FsmDefinition fsmDefinition = process.start()
-                .then(A)
-                .stay(
-                        (exit) -> exit
-                                .on("timeout", (Consumer<Process>) (b) -> b.end())
-                                .on("hello", (Consumer<Process>) (b) -> b.then(B).end())
-                )
-                .add(new Ref())
-                .end();
+            .then(A)
+            .stay(
+                exit()
+                    .on("timeout", (b) -> b.end())
+                    .on("hello", (b) -> b.then(B).end())
+            )
+            .add(new Ref())
+            .end();
 
         log(process);
         assertEquals(7, fsmDefinition.states().size());
@@ -130,17 +133,17 @@ public class BuilderTest {
 
     @Test
     public void chooseExample() {
-        Ref refE = new RefImpl("Stage E");
+        Ref refE = new Ref("Stage E");
         Process process = new Process();
         FsmDefinition fsmDefinition = process.start()
-                .then(A)
-                .choose(
-                        (choose) -> choose
-                                .when(Guard.ALLOW, (b) -> b.then(B).go(refE))
-                                .otherwise((b) -> b.go(refE))
-                )
-                .add(refE)
-                .end();
+            .then(A)
+            .choose(
+                choose()
+                    .when(Guard.ALLOW, (b) -> b.then(B).go(refE))
+                    .otherwise((b) -> b.go(refE))
+            )
+            .add(refE)
+            .end();
 
         log(process);
 
