@@ -8,8 +8,8 @@
  */
 package fsm.util;
 
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -18,12 +18,8 @@ import java.util.LinkedList;
 public class Util {
 
     public static <T> Iterable<T> iterableNonNulls(T... items) {
-        Deque<T> result = new LinkedList<>();
-        for (T item : items) {
-            if (item != null) {
-                result.add(item);
-            }
-        }
-        return result;
+        return Stream.of(items)
+                .filter(item -> item != null)
+                .collect(Collectors.toList());
     }
 }

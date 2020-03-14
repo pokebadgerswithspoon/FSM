@@ -15,14 +15,16 @@ public class ChooseSyntax {
         options.add(new Option(guard, config));
         return this;
     }
+
     ChooseSyntax otherwise(Consumer<Process> config) {
         Guard otherwise = Guard.and(
-                options.stream()
+            options.stream()
                 .map(o -> Guard.not(o.guard))
                 .collect(Collectors.toList())
         );
         return when(otherwise, config);
     }
+
     static ChooseSyntax choose() {
         return new ChooseSyntax();
     }
