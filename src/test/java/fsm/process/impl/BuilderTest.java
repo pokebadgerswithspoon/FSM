@@ -4,22 +4,17 @@ import fsm.Action;
 import fsm.Fsm;
 import fsm.FsmDefinition;
 import fsm.Guard;
-import fsm.process.Process;
 import fsm.process.Process.Ref;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static fsm.process.impl.ProcessImpl.start;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,89 +28,98 @@ public class BuilderTest {
     Action B;
     Action logE = (r, p) -> log.info("Event");
 
-    private void run(FsmDefinition def) {
-        Fsm fsm = def.define(null, 0);
-        log.info("State is {}", fsm.getState());
-
-        Function<Object, Optional<String>> whatEvent = (state) -> Stream.of("then", "timeout", "hello").filter((e) -> def.hasHandler(state, e)).findFirst();
-
-        int i=0;
-        for(Optional e = whatEvent.apply(fsm.getState()); e.isPresent(); ) {
-            Object event = e.get();
-            Object state = fsm.getState();
-            fsm.handle(event);
-            log.info("State {}, after [{}] is {}", state, event, fsm.getState());
-            if(i ++ > 10) {
-                throw new IllegalStateException("Too much steps");
-            }
-            e = whatEvent.apply(fsm.getState());
-        }
-
-    }
-
 
     @Test
     public void emptyExample() {
-        FsmDefinition def = start()
+        FsmDefinition def = new Process()
+                .start()
                 .end();
         assertEquals(2, def.states().size());
 
         run(def);
+        log(def);
+    }
+
+    private void log(FsmDefinition def) {
+        log.info("State is:{}", def.define(null, 0));
     }
 
     @Test
     public void plainExample() {
-        FsmDefinition def = start()
+        FsmDefinition def = new Process().start()
                 .then(A)
-                .then(B)
                 .end();
-        assertEquals(4, def.states().size());
+        assertEquals(3, def.states().size());
 
+        log(def);
         run(def);
         verify(A, times(1)).execute(any(), any());
-        verify(B, times(1)).execute(any(), any());
     }
 
 
     @Test
     public void loopExample() {
-        Ref refA = new RefImpl();
-        start()
+        Ref refA = new Ref();
+        new Process()
+                .start()
                 .then(A, refA)
                 .then(B)
                 .go(refA);
     }
 
+    @Test(expected = ProcessDidNotEndException.class)
+    public void gapExample() {
+        Ref refB = new Ref("Ref B");
+        Process process = new Process();
+
+        FsmDefinition fsmDefinition = process
+                .start()
+                .add(refB)
+                .end();
+
+        assertEquals(3, fsmDefinition.states().size());
+        log(process);
+        run(process);
+    }
+
+
     @Test
     public void eventExample() {
-        Ref refB = new RefImpl("Ref B");
-        FsmDefinition fsmDefinition = start()
+        Ref refB = new Ref("Ref B");
+        Process process = new Process();
+        FsmDefinition fsmDefinition = process
+                .start()
                 .then(A)
                 .stay(
-                        (exit) -> exit.on("event", refB)
+                        exit()
+                                .on("event", refB)
                 )
                 .add(refB)
-                .then(B)
                 .end();
-        assertEquals(5, fsmDefinition.states().size());
+//        assertEquals(4, fsmDefinition.states().size());
 
-        run(fsmDefinition);
-        verify(A, times(1)).execute(any(), any());
-        verify(B, times(1)).execute(any(), any());
+        log(process);
+
+//        run(fsmDefinition);
+//        verify(A, times(1)).execute(any(), any());
+//        verify(B, times(1)).execute(any(), any());
     }
 
     @Test
     public void eventsExample() {
-
-        FsmDefinition fsmDefinition = start()
+        Process process = new Process();
+        FsmDefinition fsmDefinition = process.start()
                 .then(A)
                 .stay(
                         (exit) -> exit
                                 .on("timeout", (Consumer<Process>) (b) -> b.end())
                                 .on("hello", (Consumer<Process>) (b) -> b.then(B).end())
                 )
+                .add(new Ref())
                 .end();
-        assertEquals(6, fsmDefinition.states().size());
+
+        log(process);
+        assertEquals(7, fsmDefinition.states().size());
 
         run(fsmDefinition);
 
@@ -126,9 +130,9 @@ public class BuilderTest {
 
     @Test
     public void chooseExample() {
-        Action E = (r, p) -> log.info("E");
         Ref refE = new RefImpl("Stage E");
-        FsmDefinition fsmDefinition = start()
+        Process process = new Process();
+        FsmDefinition fsmDefinition = process.start()
                 .then(A)
                 .choose(
                         (choose) -> choose
@@ -136,9 +140,51 @@ public class BuilderTest {
                                 .otherwise((b) -> b.go(refE))
                 )
                 .add(refE)
-                .then(E)
                 .end();
 
-        assertEquals(6, fsmDefinition.states().size());
+        log(process);
+
+        assertEquals(5, fsmDefinition.states().size());
+
+        run(fsmDefinition);
+        verify(B, times(1)).execute(any(), any());
+    }
+
+
+    private void run(Process process) {
+        FsmDefinition def = process.definition;
+        Fsm fsm = def.define(null, process.startRef.state);
+        runFsm(def, fsm);
+        if (!Integer.valueOf(process.endRef.state).equals(fsm.getState())) {
+            throw new ProcessDidNotEndException("Process did not end well");
+        }
+    }
+
+    private void run(FsmDefinition def) {
+        runFsm(def, def.define(null, 0));
+    }
+
+    private void runFsm(FsmDefinition def, final Fsm fsm) {
+        log.info("FSM is {}", fsm);
+
+        Function<Object, Optional<String>> whatEvent = (state) -> Stream.of("then", "timeout", "hello").filter((e) -> def.hasHandler(state, e)).findFirst();
+
+        int i = 0;
+        for (Optional e = whatEvent.apply(fsm.getState()); e.isPresent(); ) {
+            Object event = e.get();
+            Object state = fsm.getState();
+            fsm.handle(event);
+            log.info("State {}, after [{}] is {}", state, event, fsm.getState());
+            if (i++ > 10) {
+                throw new IllegalStateException("Too much steps");
+            }
+            e = whatEvent.apply(fsm.getState());
+        }
+    }
+
+
+    private void log(Process process) {
+        log(process.definition);
+        log.info("add: {}, end: {}", process.startRef, process.endRef);
     }
 }

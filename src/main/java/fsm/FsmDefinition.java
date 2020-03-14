@@ -120,5 +120,16 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         public R getRuntime() {
             return runtime;
         }
+
+        @Override
+        public String toString() {
+            StringBuilder b = new StringBuilder();
+            b.append("Current state: ").append(currentState).append("\n");
+            stateHandlers.entrySet()
+                    .stream()
+                    .forEach(e -> b.append("State "+e.getKey()+" events:").append(" {").append(e.getValue().toString()).append("}\n"));
+
+            return b.toString();
+        }
     }
 }
