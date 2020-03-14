@@ -1,6 +1,8 @@
 package fsm.process;
 
 import fsm.Guard;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ChooseSyntax {
     final List<Option> options = new ArrayList<>();
 
