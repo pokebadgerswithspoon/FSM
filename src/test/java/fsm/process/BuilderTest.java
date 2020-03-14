@@ -99,13 +99,10 @@ public class BuilderTest {
             )
             .add(refB)
             .end();
-//        assertEquals(4, fsmDefinition.states().size());
+        assertEquals(4, fsmDefinition.states().size());
 
-        log(process);
-
-//        run(fsmDefinition);
-//        verify(A, times(1)).execute(any(), any());
-//        verify(B, times(1)).execute(any(), any());
+        run(process);
+        verify(A, times(1)).execute(any(), any());
     }
 
     @Test
@@ -170,7 +167,7 @@ public class BuilderTest {
     private void runFsm(FsmDefinition def, final Fsm fsm) {
         log.info("FSM is {}", fsm);
 
-        Function<Object, Optional<String>> whatEvent = (state) -> Stream.of("then", "timeout", "hello").filter((e) -> def.hasHandler(state, e)).findFirst();
+        Function<Object, Optional<String>> whatEvent = (state) -> Stream.of("then", "timeout", "hello", "event").filter((e) -> def.hasHandler(state, e)).findFirst();
 
         int i = 0;
         for (Optional e = whatEvent.apply(fsm.getState()); e.isPresent(); ) {

@@ -58,16 +58,16 @@ public class Process {
     }
 
 
-    Process then(Action action) {
+    public Process then(Action action) {
         requireNonNull(action);
         return then(action, new Ref());
     }
 
-    Process then(Action action, Ref ref) {
+    public Process then(Action action, Ref ref) {
         return addInternal(ref).on("then", action, ref);
     }
 
-    Process stay(StayExitClause exitClause) {
+    public Process stay(StaySyntax exitClause) {
         final int s = this.currentState;
 
         for(Map.Entry<Object, Consumer<Process>> entry: exitClause.bldr.entrySet()) {
@@ -78,7 +78,7 @@ public class Process {
                 int state = this.currentState;
                 this.currentState = s;
                 Ref r = new Ref("STAY");
-                processConsumer.accept(this.addInternal(r).on(event, Action.TAKE_NO_ACTION, r));
+                processConsumer.accept(this.addInternal(r).on(event, GO, r));
                 this.currentState = state;
             });
         }
