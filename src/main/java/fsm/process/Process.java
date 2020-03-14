@@ -6,19 +6,19 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-public interface Process {
+public interface Process<S> {
 
-    Ref getStartRef();
+    S getStart();
 
-    Ref getEndRef();
+    S getEnd();
 
     FsmDefinition getFsmDefinition();
 
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     @RequiredArgsConstructor(access = AccessLevel.PUBLIC)
     @ToString
-    class Ref<T> {
-        public T state;
+    class Ref<S> {
+        public S state;
         private final String name;
 
         Ref() {

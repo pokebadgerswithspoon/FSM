@@ -145,12 +145,12 @@ public class BuilderTest {
 
     private void run(Process process) {
         FsmDefinition def = process.getFsmDefinition();
-        Ref endRef = process.getEndRef();
-        Ref startRef = process.getStartRef();
-        Fsm fsm = def.define(null, startRef.state);
+        Object end = process.getEnd();
+        Object start = process.getStart();
+        Fsm fsm = def.define(null, start);
 
         runFsm(def, fsm);
-        if (!endRef.state.equals(fsm.getState())) {
+        if (!end.equals(fsm.getState())) {
             throw new ProcessDidNotEndException("ProcessBuilder did not end well");
         }
     }
@@ -180,6 +180,6 @@ public class BuilderTest {
 
     private void log(Process process) {
         log(process.getFsmDefinition());
-        log.info("add: {}, end: {}", process.getStartRef(), process.getEndRef());
+        log.info("add: {}, end: {}", process.getStart(), process.getEnd());
     }
 }

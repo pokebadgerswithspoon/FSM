@@ -9,9 +9,9 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter
-class ProcessImpl implements Process {
+class ProcessImpl<S> implements Process<S> {
 
-    private final Ref startRef;
-    private final Ref endRef;
+    private final S start;
+    private final S end;
     private final FsmDefinition fsmDefinition;
 }

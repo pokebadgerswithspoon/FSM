@@ -146,8 +146,8 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
         onEnd.clear();
         onEndRunning = false;
         return new ProcessImpl(
-            startRef,
-            endRef,
+            startRef.state,
+            endRef.state,
             definition
         );
     }
