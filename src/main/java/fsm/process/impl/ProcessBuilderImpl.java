@@ -5,14 +5,14 @@ import fsm.FsmDefinition;
 import fsm.Guard;
 import fsm.process.ChooseSyntax;
 import fsm.process.Process;
-import fsm.process.Process.Ref;
+import fsm.process.Ref;
 import fsm.process.ProcessBuilder;
+import fsm.process.StateFactory;
 import fsm.process.StayUntil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
@@ -25,23 +25,21 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
     private Guard guard = null;
     private List<Runnable> onEnd = new ArrayList<>();
 
-    private final RefFactory<S> refFactory;
-    private final Ref<S> endRef ;
-    private final Ref<S> startRef;
+    private final StateFactory<S> stateFactory;
+    private final Ref<S> endRef = new Ref<>("END");
+    private final Ref<S> startRef = new Ref<>("START");
 
     private static final Action GO = Action.TAKE_NO_ACTION;
 
-    public ProcessBuilderImpl(RefFactory<S> refFactory) {
-        this(new FsmDefinition(), refFactory);
+    public ProcessBuilderImpl(StateFactory<S> stateFactory) {
+        this(new FsmDefinition(), stateFactory);
     }
 
-    private ProcessBuilderImpl(FsmDefinition definition, RefFactory<S> refFactory) {
-        this.refFactory = refFactory;
+    private ProcessBuilderImpl(FsmDefinition definition, StateFactory<S> stateFactory) {
+        this.stateFactory = stateFactory;
         this.definition = definition;
-        this.startRef = refFactory.create("START");
-        this.endRef = refFactory.create("END");
         register(startRef);
-        this.currentState = startRef.state;
+        this.currentState = startRef.getState();
     }
 
     private ProcessBuilderImpl on(Object event, Action action, Ref<S> ref) {
@@ -54,14 +52,14 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
             .on(event)
             .onlyIf(this.guard)
             .transition(action)
-            .to(ref.state);
+            .to(ref.getState());
 
-        currentState = ref.state;
+        currentState = ref.getState();
         return this;
     }
 
     private void requireRegistered(Ref ref) {
-        if(!refFactory.hasState(ref)) {
+        if(!ref.isAssigned()) {
             throw new IllegalStateException(format("Ref %s must be known to process, consider .register()", ref));
         }
     }
@@ -70,7 +68,7 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
     @Override
     public ProcessBuilder.StartedSyntax then(Action action) {
         requireNonNull(action);
-        return then(action, refFactory.create());
+        return then(action, new Ref<>());
     }
 
     @Override
@@ -89,7 +87,7 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
             onEnd.add(() -> {
                 S state = this.currentState;
                 this.currentState = s;
-                Ref<S> next = refFactory.create("STAY");
+                Ref<S> next = new Ref("STAY");
                 processConsumer.accept(this.register(next).on(event, GO, next));
                 this.currentState = state;
             });
@@ -112,9 +110,10 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
 
     private ProcessBuilderImpl register(final Ref<S> ref) {
         requireNonNull(ref);
-        if(!refFactory.hasState(ref)) {
-            refFactory.assignState(ref);
-            definition.registerState(ref.state);
+        if(!ref.isAssigned()) {
+            S state = stateFactory.createState();
+            ref.setState(state);
+            definition.registerState(ref.getState());
         }
         return this;
     }
@@ -124,7 +123,7 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
     public ProcessBuilder.StartedSyntax<S> add(final Ref<S> ref) {
         requireNonNull(ref);
         register(ref);
-        this.currentState = ref.state;
+        this.currentState = ref.getState();
         return this;
     }
 
@@ -146,8 +145,8 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
         onEnd.clear();
         onEndRunning = false;
         return new ProcessImpl(
-            startRef.state,
-            endRef.state,
+            startRef.getState(),
+            endRef.getState(),
             definition
         );
     }

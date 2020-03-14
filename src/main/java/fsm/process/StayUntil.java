@@ -1,7 +1,5 @@
 package fsm.process;
 
-import fsm.process.Process.Ref;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;

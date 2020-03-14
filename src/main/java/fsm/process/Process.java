@@ -14,15 +14,4 @@ public interface Process<S> {
 
     FsmDefinition getFsmDefinition();
 
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    @RequiredArgsConstructor(access = AccessLevel.PUBLIC)
-    @ToString
-    class Ref<S> {
-        public S state;
-        private final String name;
-
-        Ref() {
-            this("NONE");
-        }
-    }
 }

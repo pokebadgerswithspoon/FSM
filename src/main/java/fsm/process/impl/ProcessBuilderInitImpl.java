@@ -1,18 +1,18 @@
 package fsm.process.impl;
 
 import fsm.process.ProcessBuilder;
+import fsm.process.StateFactory;
 
-public class ProcessBuilderInitImpl<S> implements ProcessBuilder.InitSyntax<S>, ProcessBuilder.StartSyntax<S> {
-    private ProcessBuilder.RefFactory<S> refFactory;
+public class ProcessBuilderInitImpl<S> implements ProcessBuilder.StartSyntax<S> {
+    private StateFactory<S> stateFactory;
 
-    @Override
-    public ProcessBuilder.StartSyntax<S> setRefFactory(ProcessBuilder.RefFactory<S> refFactory) {
-        this.refFactory = refFactory;
+    public ProcessBuilder.StartSyntax<S> setRefFactory(StateFactory<S> stateFactory) {
+        this.stateFactory = stateFactory;
         return this;
     }
 
     @Override
     public ProcessBuilder.StartedSyntax<S> start() {
-        return new ProcessBuilderImpl<>(refFactory);
+        return new ProcessBuilderImpl<>(stateFactory);
     }
 }

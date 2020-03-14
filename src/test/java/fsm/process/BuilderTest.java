@@ -4,7 +4,6 @@ import fsm.Action;
 import fsm.Fsm;
 import fsm.FsmDefinition;
 import fsm.Guard;
-import fsm.process.Process.Ref;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,7 +62,6 @@ public class BuilderTest {
         verify(A, times(1)).execute(any(), any());
     }
 
-
     @Test
     public void loopExample() {
         Ref refA = new Ref();
@@ -121,7 +119,7 @@ public class BuilderTest {
 
     @Test
     public void chooseExample() {
-        Ref refE = new Ref("Stage E");
+        Ref refE = new Ref();
         Process process = ProcessBuilder.builder()
             .start()
             .then(A)
