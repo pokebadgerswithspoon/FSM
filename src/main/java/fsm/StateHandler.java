@@ -13,6 +13,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -61,6 +62,16 @@ public class StateHandler<S, E, R> {
         return eventMap.containsKey(event) && !eventMap.get(event).isEmpty();
     }
 
+    @Override
+    public String toString() {
+        return
+                eventMap.entrySet()
+                        .stream()
+                        .map(e -> "on \""+e.getKey() +"\" "+ e.getValue().toString())
+                        .collect(Collectors.joining(",")
+                        );
+    }
+
     private static class EventHandler<S, E, R> {
 
         private Action<R,Object> action;
@@ -71,6 +82,16 @@ public class StateHandler<S, E, R> {
             this.action = action == null ? Action.TAKE_NO_ACTION : action;
             this.guard = guard == null ? Guard.ALLOW : guard;
             this.stateTo = stateTo;
+        }
+
+        @Override
+        public String toString() {
+            return new StringBuilder()
+                    .append("->")
+                    .append(guard == Guard.ALLOW ? "": "?")
+                    .append(action == Action.TAKE_NO_ACTION ? "": "a")
+                    .append(stateTo)
+                    .toString();
         }
     }
 }

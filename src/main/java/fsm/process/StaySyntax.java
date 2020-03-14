@@ -1,11 +1,25 @@
 package fsm.process;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
-public interface StaySyntax<E extends Object> {
+public class StaySyntax {
+    public Map<Object, Process.Ref> exits = new HashMap<>();
+    public Map<Object, Consumer<Process>> bldr = new HashMap<>();
 
-    StaySyntax on(E event, Consumer<Process> builder);
+    public StaySyntax on(Object event, Process.Ref to) {
+        exits.put(event, to);
+        return this;
+    }
 
-    StaySyntax on(E event, Process.Ref to);
+    public StaySyntax on(Object event, Consumer<Process> builder) {
+        bldr.put(event, builder);
+        return this;
+    }
+
+    public static StaySyntax exit() {
+        return new StaySyntax();
+    }
 
 }

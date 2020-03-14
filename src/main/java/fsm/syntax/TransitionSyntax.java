@@ -49,10 +49,13 @@ public interface TransitionSyntax<S, E, R> {
 
         @Override
         public TransitionSyntax onlyIf(Guard guard) {
-            if (guards == null && guard != null) {
-                guards = new ArrayList();
-                guards.add(guard);
+            if(guard == null) {
+                return this;
             }
+            if(guards == null) {
+                guards = new ArrayList();
+            }
+            guards.add(guard);
             return this;
         }
     }

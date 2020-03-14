@@ -17,31 +17,29 @@ import java.util.Collection;
  */
 public interface Guard<R, P> {
 
-    public boolean allow(R runtime, P payload);
+    boolean allow(R runtime, P payload);
 
-    static final Guard ALLOW = (Guard) (Object runtime, Object payload) -> true;
+    Guard ALLOW = (runtime, payload) -> true;
 
-    public static Guard not(Guard guard) {
-        return (Guard) (Object runtime, Object payload) -> !guard.allow(runtime, payload);
+    static Guard not(Guard guard) {
+        return (runtime, payload) -> !guard.allow(runtime, payload);
     }
 
-    public static Guard and(Collection<Guard> guards) {
+    static Guard and(Collection<Guard> guards) {
         if(guards.size() == 1) {
             return guards.iterator().next();
         }
-        return new Guard() {
-            @Override
-            public boolean allow(Object runtime, Object payload) {
-                for (Guard guard : guards) {
-                    if (!guard.allow(runtime, payload)) {
-                        return false;
-                    }
+        return (runtime, payload) -> {
+            for (Guard guard : guards) {
+                if (!guard.allow(runtime, payload)) {
+                    return false;
                 }
-                return true;
             }
+            return true;
         };
     }
-    public static Guard and(Guard... guards) {
+
+    static Guard and(Guard... guards) {
         return and(Arrays.asList(guards));
     }
 }
