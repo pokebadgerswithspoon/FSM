@@ -16,7 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static fsm.process.ChooseSyntax.choose;
-import static fsm.process.StaySyntax.exit;
+import static fsm.process.StayUntil.stayUntil;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -34,13 +34,15 @@ public class BuilderTest {
 
     @Test
     public void emptyExample() {
-        FsmDefinition def = new Process()
+        Process process = ProcessBuilder.builder()
             .start()
             .end();
+
+        FsmDefinition def = process.getFsmDefinition();
+        log(process);
         assertEquals(2, def.states().size());
 
-        run(def);
-        log(def);
+        run(process);
     }
 
     private void log(FsmDefinition def) {
@@ -49,9 +51,11 @@ public class BuilderTest {
 
     @Test
     public void plainExample() {
-        FsmDefinition def = new Process().start()
+        FsmDefinition def = ProcessBuilder.builder()
+            .start()
             .then(A)
-            .end();
+            .end()
+            .getFsmDefinition();
         assertEquals(3, def.states().size());
 
         log(def);
@@ -63,42 +67,27 @@ public class BuilderTest {
     @Test
     public void loopExample() {
         Ref refA = new Ref();
-        new Process()
+        ProcessBuilder.builder()
             .start()
             .then(A, refA)
             .then(B)
             .go(refA);
     }
 
-    @Test(expected = ProcessDidNotEndException.class)
-    public void gapExample() {
-        Ref refB = new Ref("Ref B");
-        Process process = new Process();
-
-        FsmDefinition fsmDefinition = process
-            .start()
-            .add(refB)
-            .end();
-
-        assertEquals(3, fsmDefinition.states().size());
-        log(process);
-        run(process);
-    }
-
-
     @Test
     public void eventExample() {
         Ref refB = new Ref("Ref B");
-        Process process = new Process();
-        FsmDefinition fsmDefinition = process
+        Process process = ProcessBuilder.builder()
             .start()
             .then(A)
             .stay(
-                exit()
+                stayUntil()
                     .on("event", refB)
             )
             .add(refB)
             .end();
+
+        FsmDefinition fsmDefinition = process.getFsmDefinition();
         assertEquals(4, fsmDefinition.states().size());
 
         run(process);
@@ -107,16 +96,18 @@ public class BuilderTest {
 
     @Test
     public void eventsExample() {
-        Process process = new Process();
-        FsmDefinition fsmDefinition = process.start()
+        Process process = ProcessBuilder.builder()
+            .start()
             .then(A)
             .stay(
-                exit()
+                stayUntil()
                     .on("timeout", (b) -> b.end())
                     .on("hello", (b) -> b.then(B).end())
             )
             .add(new Ref())
             .end();
+
+        FsmDefinition fsmDefinition = process.getFsmDefinition();
 
         log(process);
         assertEquals(7, fsmDefinition.states().size());
@@ -131,8 +122,8 @@ public class BuilderTest {
     @Test
     public void chooseExample() {
         Ref refE = new Ref("Stage E");
-        Process process = new Process();
-        FsmDefinition fsmDefinition = process.start()
+        Process process = ProcessBuilder.builder()
+            .start()
             .then(A)
             .choose(
                 choose()
@@ -144,19 +135,23 @@ public class BuilderTest {
 
         log(process);
 
+        FsmDefinition fsmDefinition = process.getFsmDefinition();
         assertEquals(5, fsmDefinition.states().size());
 
-        run(fsmDefinition);
+        run(process);
         verify(B, times(1)).execute(any(), any());
     }
 
 
     private void run(Process process) {
-        FsmDefinition def = process.definition;
-        Fsm fsm = def.define(null, process.startRef.state);
+        FsmDefinition def = process.getFsmDefinition();
+        Ref endRef = process.getEndRef();
+        Ref startRef = process.getStartRef();
+        Fsm fsm = def.define(null, startRef.state);
+
         runFsm(def, fsm);
-        if (!Integer.valueOf(process.endRef.state).equals(fsm.getState())) {
-            throw new ProcessDidNotEndException("Process did not end well");
+        if (!endRef.state.equals(fsm.getState())) {
+            throw new ProcessDidNotEndException("ProcessBuilder did not end well");
         }
     }
 
@@ -184,7 +179,7 @@ public class BuilderTest {
 
 
     private void log(Process process) {
-        log(process.definition);
-        log.info("add: {}, end: {}", process.startRef, process.endRef);
+        log(process.getFsmDefinition());
+        log.info("add: {}, end: {}", process.getStartRef(), process.getEndRef());
     }
 }
