@@ -9,13 +9,13 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ChooseSyntax {
-    final List<Option> options = new ArrayList<>();
+    public final List<Option> options = new ArrayList<>();
 
-    ChooseSyntax when(Guard guard, Consumer<Process> config) {
+    ChooseSyntax when(Guard guard, Consumer<ProcessBuilder.StartedSyntax> config) {
         options.add(new Option(guard, config));
         return this;
     }
-    ChooseSyntax otherwise(Consumer<Process> config) {
+    ChooseSyntax otherwise(Consumer<ProcessBuilder.StartedSyntax> config) {
         Guard otherwise = Guard.and(
             options.stream()
                 .map(o -> Guard.not(o.guard))
@@ -28,8 +28,8 @@ public class ChooseSyntax {
     }
 
     @RequiredArgsConstructor
-    static class Option {
-        final Guard guard;
-        final Consumer<Process> consumer;
+    public static class Option {
+        public final Guard guard;
+        public final Consumer<ProcessBuilder.StartedSyntax> consumer;
     }
 }

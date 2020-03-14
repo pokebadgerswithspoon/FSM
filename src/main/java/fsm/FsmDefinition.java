@@ -12,15 +12,12 @@ import fsm.syntax.EventSyntax;
 import fsm.syntax.FsmDefinitionSyntax;
 import fsm.syntax.TransitionSyntax;
 
-import static fsm.util.Util.iterableNonNulls;
-import static java.util.Optional.ofNullable;
-
-import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+
+import static fsm.util.Util.iterableNonNulls;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author lauri
