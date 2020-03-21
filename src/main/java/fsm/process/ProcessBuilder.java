@@ -20,7 +20,7 @@ public interface ProcessBuilder<S> {
         StartedSyntax<S> start();
     }
 
-    interface StartedSyntax<S> {
+    interface StartedSyntax<S> extends EndSyntax<S> {
         StartedSyntax<S> then(Action action);
 
         StartedSyntax<S> then(Action action, Ref<S> ref);
@@ -28,8 +28,6 @@ public interface ProcessBuilder<S> {
         ProceedSyntax<S> choose(ChooseSyntax chooseSyntax);
 
         ProceedSyntax<S> stay(StayUntil exit);
-
-        Process end();
 
         void go(Ref<S> ref);
     }
@@ -39,4 +37,7 @@ public interface ProcessBuilder<S> {
 
     }
 
+    interface EndSyntax<S> {
+        Process end();
+    }
 }

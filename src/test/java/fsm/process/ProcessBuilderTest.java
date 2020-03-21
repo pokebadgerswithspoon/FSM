@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
-public class BuilderTest {
+public class ProcessBuilderTest {
     @Mock
     Action A;
     @Mock
