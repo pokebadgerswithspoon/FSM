@@ -4,6 +4,8 @@ import fsm.Action;
 import fsm.process.impl.IntStateFactory;
 import fsm.process.impl.ProcessBuilderInitImpl;
 
+import java.util.function.Consumer;
+
 public interface ProcessBuilder<S> {
 
     static <Integer> StartSyntax builder() {
@@ -28,13 +30,14 @@ public interface ProcessBuilder<S> {
         ProceedSyntax<S> choose(ChooseSyntax chooseSyntax);
 
         ProceedSyntax<S> stay(StayUntil exit);
-
         void go(Ref<S> ref);
     }
 
-    interface ProceedSyntax<S> {
-        ProcessBuilder.StartedSyntax add(Ref<S> ref);
 
+    interface ProceedSyntax<S> extends EndSyntax<S> {
+        ProcessBuilder.ProceedSyntax<S> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process);
+
+        ProcessBuilder.ProceedSyntax<S> add(Ref<S> ref);
     }
 
     interface EndSyntax<S> {

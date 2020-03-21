@@ -120,13 +120,21 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
 
 
     @Override
-    public ProcessBuilder.StartedSyntax<S> add(final Ref<S> ref) {
+    public ProcessBuilder.ProceedSyntax<S> add(final Ref<S> ref) {
         requireNonNull(ref);
         register(ref);
         this.currentState = ref.getState();
         return this;
     }
 
+    @Override
+    public ProcessBuilder.ProceedSyntax<S> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process) {
+        requireNonNull(ref);
+        register(ref);
+        this.currentState = ref.getState();
+        process.accept(this);
+        return this;
+    }
 
     private void thenEnd() {
         then(Action.TAKE_NO_ACTION, endRef);

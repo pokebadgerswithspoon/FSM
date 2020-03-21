@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -75,6 +76,7 @@ public class ProcessBuilderTest {
     @Test
     public void eventExample() {
         Ref refB = new Ref("Ref B");
+        Consumer<ProcessBuilder.StartedSyntax> dfdsf = (s) -> s.end();
         Process process = ProcessBuilder.builder()
             .start()
             .then(A)
@@ -102,13 +104,12 @@ public class ProcessBuilderTest {
                     .on("timeout", (b) -> b.end())
                     .on("hello", (b) -> b.then(B).end())
             )
-            .add(new Ref())
             .end();
 
         FsmDefinition fsmDefinition = process.getFsmDefinition();
 
         log(process);
-        assertEquals(7, fsmDefinition.states().size());
+        assertEquals(6, fsmDefinition.states().size());
 
         run(fsmDefinition);
 
@@ -120,6 +121,7 @@ public class ProcessBuilderTest {
     @Test
     public void chooseExample() {
         Ref refE = new Ref();
+        Consumer<ProcessBuilder.StartedSyntax> sdf = b -> b.end();
         Process process = ProcessBuilder.builder()
             .start()
             .then(A)
@@ -129,6 +131,30 @@ public class ProcessBuilderTest {
                     .otherwise((b) -> b.go(refE))
             )
             .add(refE)
+            .end();
+
+        log(process);
+
+        FsmDefinition fsmDefinition = process.getFsmDefinition();
+        assertEquals(5, fsmDefinition.states().size());
+
+        run(process);
+        verify(B, times(1)).execute(any(), any());
+    }
+
+    @Test
+    public void testBranching() {
+        Ref refE = new Ref();
+        Consumer<ProcessBuilder.StartedSyntax> sdf = b -> b.end();
+        Process process = ProcessBuilder.builder()
+            .start()
+            .then(A)
+            .choose(
+                choose()
+                    .when(Guard.ALLOW, (b) -> b.then(B).go(refE))
+                    .otherwise((b) -> b.go(refE))
+            )
+            .add(refE, sdf)
             .end();
 
         log(process);
