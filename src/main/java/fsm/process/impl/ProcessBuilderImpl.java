@@ -111,9 +111,9 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
     private ProcessBuilderImpl register(final Ref<S> ref) {
         requireNonNull(ref);
         if(!ref.isAssigned()) {
-            S state = stateFactory.createState();
+            S state = stateFactory.createState(ref);
             ref.setState(state);
-            definition.registerState(ref.getState());
+            definition.registerState(state);
         }
         return this;
     }
