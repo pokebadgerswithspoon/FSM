@@ -1,7 +1,6 @@
 package fsm.process;
 
 import fsm.Action;
-import fsm.Fsm;
 import fsm.FsmDefinition;
 import fsm.Guard;
 import lombok.extern.slf4j.Slf4j;
@@ -10,12 +9,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static fsm.process.ChooseSyntax.choose;
+import static fsm.process.ProcessUtil.run;
 import static fsm.process.StayUntil.stayUntil;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -145,7 +142,9 @@ public class ProcessBuilderTest {
     @Test
     public void testBranching() {
         Ref refE = new Ref();
-        Consumer<ProcessBuilder.StartedSyntax> sdf = b -> b.end();
+
+        Ref refD = new Ref();
+        Consumer<ProcessBuilder.StartedSyntax> sdf = b -> b.go(refD);
         Process process = ProcessBuilder.builder()
             .start()
             .then(A)
@@ -155,6 +154,7 @@ public class ProcessBuilderTest {
                     .otherwise((b) -> b.go(refE))
             )
             .add(refE, sdf)
+            .add(refD)
             .end();
 
         log(process);
@@ -167,39 +167,7 @@ public class ProcessBuilderTest {
     }
 
 
-    private void run(Process process) {
-        FsmDefinition def = process.getFsmDefinition();
-        Object end = process.getEnd();
-        Object start = process.getStart();
-        Fsm fsm = def.define(null, start);
 
-        runFsm(def, fsm);
-        if (!end.equals(fsm.getState())) {
-            throw new ProcessDidNotEndException("ProcessBuilder did not end well");
-        }
-    }
-
-    private void run(FsmDefinition def) {
-        runFsm(def, def.define(null, 0));
-    }
-
-    private void runFsm(FsmDefinition def, final Fsm fsm) {
-        log.info("FSM is {}", fsm);
-
-        Function<Object, Optional<String>> whatEvent = (state) -> Stream.of("then", "timeout", "hello", "event").filter((e) -> def.hasHandler(state, e)).findFirst();
-
-        int i = 0;
-        for (Optional e = whatEvent.apply(fsm.getState()); e.isPresent(); ) {
-            Object event = e.get();
-            Object state = fsm.getState();
-            fsm.handle(event);
-            log.info("State {}, after [{}] is {}", state, event, fsm.getState());
-            if (i++ > 10) {
-                throw new IllegalStateException("Too much steps");
-            }
-            e = whatEvent.apply(fsm.getState());
-        }
-    }
 
 
     private void log(Process process) {
