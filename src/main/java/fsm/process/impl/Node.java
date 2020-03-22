@@ -1,50 +1,77 @@
 package fsm.process.impl;
 
+import com.sun.org.apache.xpath.internal.axes.ChildIterator;
 import fsm.Action;
-import fsm.FsmDefinition;
+import fsm.Guard;
+import fsm.process.ChooseSyntax;
 import fsm.process.Ref;
-import fsm.syntax.EventSyntax;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 import static fsm.Action.TAKE_NO_ACTION;
-import static java.util.Objects.requireNonNull;
 
-@RequiredArgsConstructor
 class Node<S> {
 
-
-    void then(Ref<S> ref) {
-        exit = (leaf, in) -> in.on("then").transition(onEnter).to(ref);
-    }
-
-
-
-    Exit<S> exit;
-
-    public Node(Ref<S> ref) {
-        this(ref, TAKE_NO_ACTION);
-    }
-
-    void registerIn(FsmDefinition fsmDefinition) {
-        requireNonNull(ref.getState());
-        
-        for(Node<S> leaf: leafs) {
-            exit.register(leaf, fsmDefinition.in(ref.getState()));
-        }
-                
-    }
-
+    private static final Object THEN = "THEN";
+    protected Branch<S> branch;
     final Ref<S> ref;
     final Action onEnter;
+    List<Exit<S>> exits = new LinkedList<>();
 
-    List<Node<S>> leafs = new ArrayList<>();
-    
-    interface Exit<S> {
+    Node(Branch<S> branch) {
+        this(branch, null);
+    }
 
-        void register(Node<S> leaf, EventSyntax in);
+    Node(Branch<S> branch, Ref<S> ref) {
+        this(branch, ref, TAKE_NO_ACTION);
+    }
+    Node(Branch<S> branch, Ref<S> ref, Action onEnter) {
+        this.branch = branch;
+        this.ref = ref;
+        this.onEnter = onEnter;
+    }
+
+
+    Node<S> then(Action action) {
+        return then(action, null);
+
+    }
+    Node<S> then(Action action, Ref<S> refTo) {
+        if(!exits.isEmpty()) {
+            throw new IllegalStateException("Can not apply .then() to this node");
+        }
+        Node<S> node = new Node<>(branch, refTo, action);
+        exits.add(new Exit<>(node, THEN, null));
+        return node;
+    }
+
+    Branch<S> choose(ChooseSyntax chooseSyntax) {
+        for(ChooseSyntax.Option option: chooseSyntax.options) {
+
+            Ref<S> refTo = new Ref<>();
+            Action action = TAKE_NO_ACTION;
+            Node<S> node = new Node<>(branch, refTo, action);
+            option.consumer.accept(node);
+            exits.add(new Exit<>(node, THEN, option.guard));
+        }
+        return  branch;
+    }
+
+
+
+    void end() {
+        then(TAKE_NO_ACTION, branch.endRef);
+    }
+
+
+    @RequiredArgsConstructor
+    static class Exit<S> {
+
+        final Node<S> nodeTo;
+        final Object event;
+        final Guard guard;
+
     }
 }

@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.ProceedSyntax<S>, ProcessBuilder.StartedSyntax<S> {
 
+    private static final Object THEN = "THEN";
     private S currentState = null;
     private Guard guard = null;
     private List<Runnable> onEnd = new ArrayList<>();
@@ -54,10 +55,27 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
 
     @Override
     public StartedSyntax then(Action action, Ref ref) {
-        Node<S> leaf = new Node<>(ref, action);
-        current.then(ref);
-        current.leafs.add(leaf);
-        this.current = leaf;
+        if(!current.exits.isEmpty()) {
+            throw new IllegalStateException("Can not apply .then() to this node");
+        }
+        Node<S> node = new Node<>(ref, action);
+        current.exits.add(node);
+        current = node;
+        return this;
+    }
+
+
+
+
+    @Override
+    public ProceedSyntax<S> choose(ChooseSyntax chooseSyntax) {
+
+        final S s = this.currentState;
+        for (ChooseSyntax.Option option : chooseSyntax.options) {
+
+            option.consumer.accept(this);
+            current.exits.add(new Node.Exit<>(nodeTo, THEN, option.guard ));
+        }
         return this;
     }
 
@@ -132,21 +150,6 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
 //        on("then", Action.TAKE_NO_ACTION, ref);
     }
 
-    @Override
-    public ProceedSyntax<S> choose(ChooseSyntax chooseSyntax) {
-        final S s = this.currentState;
-        for (ChooseSyntax.Option option : chooseSyntax.options) {
-            onEnd.add(() -> {
-                S prevS = this.currentState;
-                this.currentState = s;
-                this.guard = option.guard;
-                option.consumer.accept(this);
-                this.guard = null;
-                this.currentState = prevS;
-            });
-        }
-        return this;
-    }
 
 
     @Override
