@@ -1,5 +1,6 @@
 package fsm.process.impl;
 
+import fsm.process.Ref;
 import fsm.process.StateFactory;
 
 import java.util.function.Supplier;
@@ -10,7 +11,7 @@ public class IntStateFactory implements StateFactory<Integer> {
 
 
     @Override
-    public Integer createState() {
+    public Integer createState(Ref<Integer> ref) {
         return ++lastKnownState;
     }
 }
