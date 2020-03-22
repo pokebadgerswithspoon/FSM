@@ -27,6 +27,9 @@ public interface ProcessBuilder<S> {
 
         StartedSyntax<S> then(Action action, Ref<S> ref);
 
+        public StartedSyntax then(Process subProcess);
+        public StartedSyntax then(Process subProcess, Ref ref);
+
         ProceedSyntax<S> choose(ChooseSyntax chooseSyntax);
 
         ProceedSyntax<S> stay(StayUntil exit);
@@ -41,6 +44,8 @@ public interface ProcessBuilder<S> {
     }
 
     interface EndSyntax<S> {
-        Process end();
+        ProcessBuilder<S> end();
     }
+
+    Process<S> build();
 }
