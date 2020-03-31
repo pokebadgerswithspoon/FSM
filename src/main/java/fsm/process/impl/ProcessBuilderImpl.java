@@ -9,9 +9,11 @@ import fsm.process.ProcessBuilder;
 import fsm.process.Ref;
 import fsm.process.StateFactory;
 import fsm.process.StayUntil;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -22,22 +24,30 @@ import static java.util.Objects.requireNonNull;
 
 public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.ProceedSyntax<S>, ProcessBuilder.StartedSyntax<S> {
 
-    private static final Object THEN = "THEN";
-    private S currentState = null;
-    private Guard guard = null;
-    private List<Runnable> onEnd = new ArrayList<>();
-
     private final StateFactory<S> stateFactory;
-    private final Ref<S> endRef = new Ref<>("END");
-    private final Ref<S> startRef = new Ref<>("START");
+    final Ref<S> endRef;
+    final Ref<S> startRef;
 
-    private final Node root = new Node(startRef);
-    private Node current = root;
+    Map<Ref<S>, Node<S>> nodes = new HashMap<>();
+    private Node<S> current;
 
-    private static final Action GO = TAKE_NO_ACTION;
 
+    public ProcessBuilderImpl() {
+        this((StateFactory<S>) new IntStateFactory());
+    }
     public ProcessBuilderImpl(StateFactory<S> stateFactory) {
+        this(stateFactory, new Ref<>("START"), new Ref<>("END"));
+    }
+
+    private ProcessBuilderImpl(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef) {
+        requireNonNull(startRef);
+        requireNonNull(endRef);
+        requireNonNull(stateFactory);
         this.stateFactory = stateFactory;
+        this.endRef = endRef;
+        this.startRef = startRef;
+        this.current = new Node<>( startRef, TAKE_NO_ACTION);
+        this.current.processBuilder = this;
     }
 
     private void requireRegistered(Ref ref) {
@@ -49,105 +59,44 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
 
     @Override
     public ProcessBuilder.StartedSyntax then(Action action) {
-        requireNonNull(action);
-        return then(action, new Ref<>());
+        current = current.then(action);
+        return this;
     }
 
     @Override
     public StartedSyntax then(Action action, Ref ref) {
-        if(!current.exits.isEmpty()) {
-            throw new IllegalStateException("Can not apply .then() to this node");
-        }
-        Node<S> node = new Node<>(ref, action);
-        current.exits.add(node);
-        current = node;
+        current = current.then(action, ref);
         return this;
     }
-
-
 
 
     @Override
     public ProceedSyntax<S> choose(ChooseSyntax chooseSyntax) {
-
-        final S s = this.currentState;
-        for (ChooseSyntax.Option option : chooseSyntax.options) {
-
-            option.consumer.accept(this);
-            current.exits.add(new Node.Exit<>(nodeTo, THEN, option.guard ));
-        }
+        current.choose(chooseSyntax);
         return this;
     }
 
-    public StartedSyntax then(Process subProcess) {
-        return then(subProcess, new Ref<>());
-    }
-
-    public StartedSyntax then(Process subProcess, Ref ref) {
-        requireNonNull(subProcess);
-        requireNonNull(ref);
-
-        FsmDefinition subFsmDef = subProcess.getFsmDefinition();
-
-//        return register(ref).on("then", action, ref);
-        return null;
+    public ProcessBuilderImpl<S> createSubProcessBuilder(Ref startRef) {
+        return new ProcessBuilderImpl<>(this.stateFactory, startRef, endRef);
     }
 
     @Override
     public ProcessBuilder.ProceedSyntax stay(StayUntil exitClause) {
-        final S s = this.currentState;
-
-        for (Map.Entry<Object, Consumer<ProcessBuilder.StartedSyntax>> entry : exitClause.bldr.entrySet()) {
-            final Object event = entry.getKey();
-            final Consumer<ProcessBuilder.StartedSyntax> processConsumer = entry.getValue();
-
-            onEnd.add(() -> {
-                S state = this.currentState;
-                this.currentState = s;
-                Ref<S> next = new Ref("STAY");
-//                processConsumer.accept(this.register(next).on(event, GO, next));
-                this.currentState = state;
-            });
-        }
-        for (Map.Entry<Object, Ref> entry : exitClause.exits.entrySet()) {
-            final Object event = entry.getKey();
-            final Ref<S> whereTo = entry.getValue();
-
-            onEnd.add(() -> {
-                S state = this.currentState;
-                this.currentState = s;
-                // shall we die if whereTo is unknown?
-//                on(event, GO, whereTo);
-                this.currentState = state;
-            });
-        }
-
+        current.stay(exitClause);
         return this;
     }
 
-
-    @Override
-    public ProcessBuilder.ProceedSyntax<S> add(final Ref<S> ref) {
-        requireNonNull(ref);
-        register(ref);
-        this.currentState = ref.getState();
-        return this;
-    }
 
     @Override
     public ProcessBuilder.ProceedSyntax<S> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process) {
-        requireNonNull(ref);
-        register(ref);
-        this.currentState = ref.getState();
-        process.accept(this);
+        ProcessBuilderImpl<S> subProcessBuilder = createSubProcessBuilder(ref);
+        process.accept(subProcessBuilder);
         return this;
     }
 
-    private boolean onEndRunning = false;
-
     @Override
     public void go(Ref ref) {
-//        on("then", Action.TAKE_NO_ACTION, ref);
+        throw new IllegalArgumentException("Not implemented yet");
     }
 
 
@@ -161,35 +110,20 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
     @Override
     public Process build() {
         final FsmDefinition definition = new FsmDefinition();
-
-        registerLeaf(root, definition);
-
-
-        if (onEndRunning) {
-            return null;
-        }
-        onEndRunning = true;
-        onEnd.forEach(Runnable::run);
-        onEnd.clear();
-        onEndRunning = false;
-        return null;
-//        return new ProcessImpl(
-//            startRef.getState(),
-//            endRef.getState(),
-//            definition
-//        );
+        nodes.keySet().forEach(ref -> register(ref, definition));
+        return new ProcessImpl(
+            startRef.getState(),
+            endRef.getState(),
+            definition
+        );
     }
-    private void registerLeaf(Node<S> leaf, FsmDefinition definition) {
-        Ref ref = register(leaf.ref, definition);
-        leaf.registerIn(definition);
 
-    }
 
 
     private Ref register(final Ref<S> ref, FsmDefinition fsmDefinition) {
         requireNonNull(ref);
         if (!ref.isAssigned()) {
-            S state = stateFactory.createState();
+            S state = stateFactory.createState(ref);
             ref.setState(state);
             fsmDefinition.registerState(ref.getState());
         }

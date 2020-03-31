@@ -1,77 +1,88 @@
 package fsm.process.impl;
 
-import com.sun.org.apache.xpath.internal.axes.ChildIterator;
 import fsm.Action;
 import fsm.Guard;
 import fsm.process.ChooseSyntax;
+import fsm.process.ProcessBuilder;
 import fsm.process.Ref;
+import fsm.process.StayUntil;
 import lombok.RequiredArgsConstructor;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static fsm.Action.TAKE_NO_ACTION;
+import static java.util.Objects.requireNonNull;
 
-class Node<S> {
+@RequiredArgsConstructor
+public class Node<S> implements ProcessBuilder.StartedSyntax<S> {
 
-    private static final Object THEN = "THEN";
-    protected Branch<S> branch;
+    static final Object THEN = "THEN";
+    ProcessBuilderImpl<S> processBuilder;
     final Ref<S> ref;
     final Action onEnter;
-    List<Exit<S>> exits = new LinkedList<>();
+    final List<Exit<S>> exits = new LinkedList<>();
 
-    Node(Branch<S> branch) {
-        this(branch, null);
+    Node(ProcessBuilderImpl<S> processBuilder, Ref<S> ref, Action onEnter) {
+        this(ref, onEnter);
+        this.processBuilder = processBuilder;
     }
 
-    Node(Branch<S> branch, Ref<S> ref) {
-        this(branch, ref, TAKE_NO_ACTION);
-    }
-    Node(Branch<S> branch, Ref<S> ref, Action onEnter) {
-        this.branch = branch;
-        this.ref = ref;
-        this.onEnter = onEnter;
+    @Override
+    public Node<S> then(Action action) {
+        return then(action, new Ref<>());
     }
 
-
-    Node<S> then(Action action) {
-        return then(action, null);
-
-    }
-    Node<S> then(Action action, Ref<S> refTo) {
+    @Override
+    public Node<S> then(Action action, Ref<S> refTo) {
         if(!exits.isEmpty()) {
             throw new IllegalStateException("Can not apply .then() to this node");
         }
-        Node<S> node = new Node<>(branch, refTo, action);
-        exits.add(new Exit<>(node, THEN, null));
+        return addExit(action, ref, null);
+    }
+
+    Node<S> addExit(Action action, Ref<S> refTo, Guard guard) {
+        Node<S> node = processBuilder.nodes.computeIfAbsent(refTo, (r) -> new Node<>(processBuilder, r, TAKE_NO_ACTION));
+        exits.add(new Exit<>(refTo, THEN, guard));
         return node;
     }
 
-    Branch<S> choose(ChooseSyntax chooseSyntax) {
+    public Branch<S> choose(ChooseSyntax chooseSyntax) {
         for(ChooseSyntax.Option option: chooseSyntax.options) {
-
-            Ref<S> refTo = new Ref<>();
             Action action = TAKE_NO_ACTION;
-            Node<S> node = new Node<>(branch, refTo, action);
-            option.consumer.accept(node);
-            exits.add(new Exit<>(node, THEN, option.guard));
+            ProcessBuilderImpl<S> b = processBuilder.createSubProcessBuilder(new Ref<>("WHEN"));
+            option.consumer.accept(b);
+            addExit(action, b.startRef, option.guard);
         }
-        return  branch;
+        return newBranch();
+    }
+    private Branch<S> newBranch() {
+        return new Branch<S>(new Ref<>(), new Ref<>(), processBuilder);
     }
 
-
-
-    void end() {
-        then(TAKE_NO_ACTION, branch.endRef);
+    @Override
+    public ProcessBuilder<S> end() {
+        return processBuilder.end();
     }
 
+    @Override
+    public void go(Ref<S> ref) {
+        exits.add(new Exit<>(ref, THEN, null));
+    }
 
-    @RequiredArgsConstructor
-    static class Exit<S> {
-
-        final Node<S> nodeTo;
-        final Object event;
-        final Guard guard;
-
+    @Override
+    public Branch<S> stay(StayUntil stayUntil) {
+        Collection<StayUntil.Exit> entries = stayUntil.exits.values();
+        for(StayUntil.Exit exit: entries) {
+            if(exit.refTo != null) {
+                addExit(TAKE_NO_ACTION, exit.refTo, exit.guard);
+            } else if(exit.builder != null) {
+                ProcessBuilderImpl<S> b = processBuilder.createSubProcessBuilder(new Ref<>("UNTIL"));
+                exit.builder.accept(b);
+                addExit(TAKE_NO_ACTION, b.startRef, exit.guard);
+            } else {
+                requireNonNull(exit.refTo, "refTo (or subprocess) from StayUntil.Exit should should be non null");
+            }
+        }
+        return newBranch();
     }
 }

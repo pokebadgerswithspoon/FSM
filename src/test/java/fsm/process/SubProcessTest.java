@@ -24,10 +24,10 @@ public class SubProcessTest {
     public void testSimpleProcess() {
         Process simpleProcess = createSimpleProcess();
         assertNotNull(simpleProcess);
-//        FsmDefinition def = simpleProcess.getFsmDefinition();
-//        assertEquals(3, def.states().size());
-//
-//        run(simpleProcess);
+        FsmDefinition def = simpleProcess.getFsmDefinition();
+        assertEquals(3, def.states().size());
+
+        run(simpleProcess);
     }
 
 //    @Test

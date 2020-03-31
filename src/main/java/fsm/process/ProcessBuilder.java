@@ -27,20 +27,15 @@ public interface ProcessBuilder<S> {
 
         StartedSyntax<S> then(Action action, Ref<S> ref);
 
-        public StartedSyntax then(Process subProcess);
-        public StartedSyntax then(Process subProcess, Ref ref);
-
         ProceedSyntax<S> choose(ChooseSyntax chooseSyntax);
 
         ProceedSyntax<S> stay(StayUntil exit);
+
         void go(Ref<S> ref);
     }
 
-
     interface ProceedSyntax<S> extends EndSyntax<S> {
         ProcessBuilder.ProceedSyntax<S> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process);
-
-        ProcessBuilder.ProceedSyntax<S> add(Ref<S> ref);
     }
 
     interface EndSyntax<S> {
