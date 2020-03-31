@@ -4,43 +4,47 @@ import fsm.Action;
 import fsm.process.impl.IntStateFactory;
 import fsm.process.impl.ProcessBuilderInitImpl;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
-public interface ProcessBuilder<S> {
+public interface ProcessBuilder<S,E,R> {
 
-    static <Integer> StartSyntax builder() {
-        StateFactory<Integer> stateFactory = (StateFactory<Integer>) new IntStateFactory();
-        return new ProcessBuilderInitImpl<Integer>()
+    static StartSyntax<Integer, String, Map> builder() {
+        return builder(String.class, Map.class);
+    }
+    static <E,R> StartSyntax<Integer, E, R> builder(Class<E> event, Class<R> runtime) {
+        StateFactory<Integer> stateFactory = new IntStateFactory();
+        return new ProcessBuilderInitImpl()
             .setRefFactory(stateFactory);
     }
-    static <S> StartSyntax builder(StateFactory<S> refFactory) {
-        return new ProcessBuilderInitImpl<S>()
+    static <S,E,R> StartSyntax builder(StateFactory<S> refFactory,Class<E> event, Class<R> runtime) {
+        return new ProcessBuilderInitImpl<S,E,R>()
             .setRefFactory(refFactory);
     }
 
-    interface StartSyntax<S> {
-        StartedSyntax<S> start();
+    interface StartSyntax<S,E,R> {
+        StartedSyntax<S, E, R> start();
     }
 
-    interface StartedSyntax<S> extends EndSyntax<S> {
-        StartedSyntax<S> then(Action action);
+    interface StartedSyntax<S,E,R> extends EndSyntax<S,E,R> {
+        StartedSyntax<S,E,R> then(Action<R, Object> action);
 
-        StartedSyntax<S> then(Action action, Ref<S> ref);
+        StartedSyntax<S,E,R> then(Action<R, Object> action, Ref<S> ref);
 
-        ProceedSyntax<S> choose(ChooseSyntax chooseSyntax);
+        ProceedSyntax<S,E,R> choose(ChooseSyntax chooseSyntax);
 
-        ProceedSyntax<S> stay(StayUntil exit);
+        ProceedSyntax<S,E,R> stay(StayUntil exit);
 
         void go(Ref<S> ref);
     }
 
-    interface ProceedSyntax<S> extends EndSyntax<S> {
-        ProcessBuilder.ProceedSyntax<S> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process);
+    interface ProceedSyntax<S,E,R> extends EndSyntax<S,E,R> {
+        ProcessBuilder.ProceedSyntax<S,E,R> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process);
     }
 
-    interface EndSyntax<S> {
-        ProcessBuilder<S> end();
+    interface EndSyntax<S,E,R> {
+        ProcessBuilder<S,E,R> end();
     }
 
-    Process<S> build();
+    Process<S,E,R> build();
 }

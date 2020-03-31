@@ -8,8 +8,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.function.Consumer;
-
 import static fsm.process.ProcessUtil.run;
 import static fsm.process.StayUntil.stayUntil;
 import static org.junit.Assert.assertEquals;
@@ -70,14 +68,13 @@ public class ProcessTest {
     @Test
     public void eventExample() {
         Ref refB = new Ref("Ref B");
-        Consumer<ProcessBuilder.StartedSyntax> sdf = (b) -> b.end();
         Process process = ProcessBuilder.builder()
                 .start()
                 .stay(
                         stayUntil()
                                 .on("EVENT", refB)
                 )
-                .add(refB, sdf)
+                .add(refB, (b) -> b.then(B).end())
                 .end()
                 .build();
 
@@ -85,6 +82,7 @@ public class ProcessTest {
         assertEquals(3, fsmDefinition.states().size());
 
         run(process);
+        verify(B, times(1)).execute(any(), any());
     }
 
 

@@ -13,19 +13,15 @@ import java.util.function.Consumer;
 import static fsm.Action.TAKE_NO_ACTION;
 import static java.util.Objects.requireNonNull;
 
-public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.ProceedSyntax<S>, ProcessBuilder.StartedSyntax<S> {
+public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, ProcessBuilder.ProceedSyntax<S,E,R>, ProcessBuilder.StartedSyntax<S,E,R> {
 
     private final StateFactory<S> stateFactory;
     final Ref<S> endRef;
     final Ref<S> startRef;
 
-    Map<Ref<S>, Node<S>> nodes = new HashMap<>();
-    private Node<S> current;
+    Map<Ref<S>, Node<S,E,R>> nodes = new HashMap<>();
+    private Node<S,E,R> current;
 
-
-    public ProcessBuilderImpl() {
-        this((StateFactory<S>) new IntStateFactory());
-    }
     public ProcessBuilderImpl(StateFactory<S> stateFactory) {
         this(stateFactory, new Ref<>("START"), new Ref<>("END"));
     }
@@ -40,20 +36,20 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
         this.current = createNode(startRef);
     }
 
-    Node<S> createNode(Ref<S> ref) {
+    Node<S,E,R> createNode(Ref<S> ref) {
         return createNode(ref, TAKE_NO_ACTION);
     }
-    Node<S> createNode(Ref<S> ref, Action action) {
+    Node<S,E,R> createNode(Ref<S> ref, Action<R, Object> action) {
         if(this.nodes.containsKey(ref)) {
             throw new IllegalArgumentException("Ref is already known "+ ref);
         }
-        Node<S> node = new Node<>(ref, action);
+        Node<S,E,R> node = new Node<>(ref, action);
         node.processBuilder = this;
         this.nodes.put(ref, node);
         return node;
     }
 
-    Node<S> getNodeByRef(Ref<S> ref) {
+    Node<S,E,R> getNodeByRef(Ref<S> ref) {
         return nodes.computeIfAbsent(ref, (r) -> new Node<>(this, r, TAKE_NO_ACTION));
     }
 
@@ -72,12 +68,12 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
 
 
     @Override
-    public ProceedSyntax<S> choose(ChooseSyntax chooseSyntax) {
+    public ProceedSyntax<S,E,R> choose(ChooseSyntax chooseSyntax) {
         current.choose(chooseSyntax);
         return this;
     }
 
-    public ProcessBuilderImpl<S> createSubProcessBuilder(Ref startRef) {
+    public ProcessBuilderImpl<S,E,R> createSubProcessBuilder(Ref startRef) {
         return new ProcessBuilderImpl<>(this.stateFactory, startRef, endRef);
     }
 
@@ -89,8 +85,8 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
 
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process) {
-        ProcessBuilderImpl<S> subProcessBuilder = createSubProcessBuilder(ref);
+    public ProcessBuilder.ProceedSyntax<S,E,R> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process) {
+        ProcessBuilderImpl<S,E,R> subProcessBuilder = createSubProcessBuilder(ref);
         process.accept(subProcessBuilder);
         this.current = getNodeByRef(ref);
         return this;
@@ -117,10 +113,10 @@ public class ProcessBuilderImpl<S> implements ProcessBuilder<S>, ProcessBuilder.
                 .stream()
                 .forEach(e -> {
                     Ref<S> ref = e.getKey();
-                    Node<S> node = e.getValue();
+                    Node<S,E,R> node = e.getValue();
                     node.exits.stream()
                             .forEach(exit -> {
-                                Node<S> nodeTo = nodes.get(exit.refTo);
+                                Node<S,E,R> nodeTo = nodes.get(exit.refTo);
                                 definition.in(ref.getState()).on(exit.event).onlyIf(exit.guard).transition(nodeTo.onEnter).to(exit.refTo.getState());
                             });
                 });

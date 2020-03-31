@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class ChooseSyntax {
+public class ChooseSyntax<S,E,R> {
     public final List<Option> options = new ArrayList<>();
 
     public ChooseSyntax when(Guard guard, Consumer<ProcessBuilder.StartedSyntax> config) {
@@ -28,8 +28,8 @@ public class ChooseSyntax {
     }
 
     @RequiredArgsConstructor
-    public static class Option {
-        public final Guard guard;
-        public final Consumer<ProcessBuilder.StartedSyntax> consumer;
+    public static class Option<S,E,R> {
+        public final Guard<R, Object> guard;
+        public final Consumer<ProcessBuilder.StartedSyntax<S,E,R>> consumer;
     }
 }

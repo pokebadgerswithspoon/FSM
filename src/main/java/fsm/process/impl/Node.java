@@ -16,55 +16,55 @@ import java.util.Map;
 import static java.util.Objects.requireNonNull;
 
 @RequiredArgsConstructor
-public class Node<S> implements ProcessBuilder.StartedSyntax<S> {
+public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
 
     static final Object THEN = "THEN";
-    ProcessBuilderImpl<S> processBuilder;
+    ProcessBuilderImpl<S,E,R> processBuilder;
     final Ref<S> ref;
-    final Action onEnter;
+    final Action<R, Object> onEnter;
     final List<Exit<S>> exits = new LinkedList<>();
 
-    Node(ProcessBuilderImpl<S> processBuilder, Ref<S> ref, Action onEnter) {
+    Node(ProcessBuilderImpl<S,E,R> processBuilder, Ref<S> ref, Action<R,Object> onEnter) {
         this(ref, onEnter);
         this.processBuilder = processBuilder;
     }
 
     @Override
-    public Node<S> then(Action action) {
+    public Node<S,E,R> then(Action action) {
         return then(action, new Ref<>());
     }
 
     @Override
-    public Node<S> then(Action action, Ref<S> refTo) {
+    public Node<S,E,R> then(Action action, Ref<S> refTo) {
         if(!exits.isEmpty()) {
             throw new IllegalStateException("Can not apply .then() to this node");
         }
-        Node<S> node = processBuilder.createNode(refTo, action);
+        Node<S,E,R> node = processBuilder.createNode(refTo, action);
         exits.add(new Exit<S>(node.ref, THEN, Guard.ALLOW));
         return node;
     }
 
-    Node<S> addExit(Object event, Ref<S> refTo, Guard guard) {
-        Node<S> node = processBuilder.getNodeByRef(refTo);
+    Node<S,E,R> addExit(Object event, Ref<S> refTo, Guard guard) {
+        Node<S,E,R> node = processBuilder.getNodeByRef(refTo);
 
         exits.add(new Exit<>(refTo, event, guard));
         return node;
     }
 
-    public Branch<S> choose(ChooseSyntax chooseSyntax) {
+    public Branch<S,E,R> choose(ChooseSyntax chooseSyntax) {
         for(ChooseSyntax.Option option: chooseSyntax.options) {
-            ProcessBuilderImpl<S> b = processBuilder.createSubProcessBuilder(new Ref<>("WHEN"));
+            ProcessBuilderImpl<S,E,R> b = processBuilder.createSubProcessBuilder(new Ref<>("WHEN"));
             option.consumer.accept(b);
             addExit(THEN, b.startRef, option.guard);
         }
         return newBranch();
     }
-    private Branch<S> newBranch() {
-        return new Branch<S>(new Ref<>(), new Ref<>(), processBuilder);
+    private Branch<S,E,R> newBranch() {
+        return new Branch<>(new Ref<>(), new Ref<>(), processBuilder);
     }
 
     @Override
-    public ProcessBuilder<S> end() {
+    public ProcessBuilder<S,E,R> end() {
         return processBuilder.end();
     }
 
@@ -74,7 +74,7 @@ public class Node<S> implements ProcessBuilder.StartedSyntax<S> {
     }
 
     @Override
-    public Branch<S> stay(StayUntil stayUntil) {
+    public Branch<S,E,R> stay(StayUntil stayUntil) {
         Collection<Map.Entry<Object, StayUntil.Exit>> entries = stayUntil.exits.entrySet();
         for(Map.Entry<Object, StayUntil.Exit> entry: entries) {
             Object event = entry.getKey();
@@ -82,7 +82,7 @@ public class Node<S> implements ProcessBuilder.StartedSyntax<S> {
             if(exit.refTo != null) {
                 addExit(event, exit.refTo, exit.guard);
             } else if(exit.builder != null) {
-                ProcessBuilderImpl<S> b = processBuilder.createSubProcessBuilder(new Ref<>("UNTIL"));
+                ProcessBuilderImpl<S,E,R> b = processBuilder.createSubProcessBuilder(new Ref<>("UNTIL"));
                 exit.builder.accept(b);
                 addExit(event, b.startRef, exit.guard);
             } else {
