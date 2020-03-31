@@ -29,7 +29,7 @@ public class ProcessUtil {
     static void runFsm(FsmDefinition def, final Fsm fsm) {
         log.info("FSM is {}", fsm);
 
-        Function<Object, Optional<String>> whatEvent = (state) -> Stream.of("then", "timeout", "hello", "event").filter((e) -> def.hasHandler(state, e)).findFirst();
+        Function<Object, Optional<String>> whatEvent = (state) -> Stream.of("THEN", "TIMEOUT", "HELLO", "EVENT").filter((e) -> def.hasHandler(state, e)).findFirst();
 
         int i = 0;
         for (Optional e = whatEvent.apply(fsm.getState()); e.isPresent(); ) {

@@ -8,9 +8,11 @@ import fsm.process.Ref;
 import fsm.process.StayUntil;
 import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
-import static fsm.Action.TAKE_NO_ACTION;
 import static java.util.Objects.requireNonNull;
 
 @RequiredArgsConstructor
@@ -37,21 +39,23 @@ public class Node<S> implements ProcessBuilder.StartedSyntax<S> {
         if(!exits.isEmpty()) {
             throw new IllegalStateException("Can not apply .then() to this node");
         }
-        return addExit(action, ref, null);
+        Node<S> node = processBuilder.createNode(refTo, action);
+        exits.add(new Exit<S>(node.ref, THEN, Guard.ALLOW));
+        return node;
     }
 
-    Node<S> addExit(Action action, Ref<S> refTo, Guard guard) {
-        Node<S> node = processBuilder.nodes.computeIfAbsent(refTo, (r) -> new Node<>(processBuilder, r, TAKE_NO_ACTION));
-        exits.add(new Exit<>(refTo, THEN, guard));
+    Node<S> addExit(Object event, Ref<S> refTo, Guard guard) {
+        Node<S> node = processBuilder.getNodeByRef(refTo);
+
+        exits.add(new Exit<>(refTo, event, guard));
         return node;
     }
 
     public Branch<S> choose(ChooseSyntax chooseSyntax) {
         for(ChooseSyntax.Option option: chooseSyntax.options) {
-            Action action = TAKE_NO_ACTION;
             ProcessBuilderImpl<S> b = processBuilder.createSubProcessBuilder(new Ref<>("WHEN"));
             option.consumer.accept(b);
-            addExit(action, b.startRef, option.guard);
+            addExit(THEN, b.startRef, option.guard);
         }
         return newBranch();
     }
@@ -71,14 +75,16 @@ public class Node<S> implements ProcessBuilder.StartedSyntax<S> {
 
     @Override
     public Branch<S> stay(StayUntil stayUntil) {
-        Collection<StayUntil.Exit> entries = stayUntil.exits.values();
-        for(StayUntil.Exit exit: entries) {
+        Collection<Map.Entry<Object, StayUntil.Exit>> entries = stayUntil.exits.entrySet();
+        for(Map.Entry<Object, StayUntil.Exit> entry: entries) {
+            Object event = entry.getKey();
+            StayUntil.Exit exit = entry.getValue();
             if(exit.refTo != null) {
-                addExit(TAKE_NO_ACTION, exit.refTo, exit.guard);
+                addExit(event, exit.refTo, exit.guard);
             } else if(exit.builder != null) {
                 ProcessBuilderImpl<S> b = processBuilder.createSubProcessBuilder(new Ref<>("UNTIL"));
                 exit.builder.accept(b);
-                addExit(TAKE_NO_ACTION, b.startRef, exit.guard);
+                addExit(event, b.startRef, exit.guard);
             } else {
                 requireNonNull(exit.refTo, "refTo (or subprocess) from StayUntil.Exit should should be non null");
             }

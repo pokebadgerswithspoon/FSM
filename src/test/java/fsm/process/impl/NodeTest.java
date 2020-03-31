@@ -34,10 +34,9 @@ public class NodeTest {
     @Test
     public void testAddExit() {
         Node node = new Node<>(processBuilder, ref, action) ;
-        Action a = (r, p) -> {};
         Ref to = new Ref();
         Guard guard = (r, p) -> true;
-        node.addExit(a, to, guard);
+        node.addExit(Node.THEN, to, guard);
         assertEquals(1, node.exits.size());
     }
 
