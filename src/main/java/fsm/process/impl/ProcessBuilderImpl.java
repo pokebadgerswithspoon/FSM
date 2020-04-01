@@ -2,13 +2,16 @@ package fsm.process.impl;
 
 import fsm.Action;
 import fsm.FsmDefinition;
+import fsm.Guard;
 import fsm.process.Process;
 import fsm.process.ProcessBuilder;
-import fsm.process.*;
+import fsm.process.Ref;
+import fsm.process.StateFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static fsm.Action.TAKE_NO_ACTION;
 import static java.util.Objects.requireNonNull;
@@ -19,7 +22,7 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     final Ref<S> endRef;
     final Ref<S> startRef;
 
-    Map<Ref<S>, Node<S,E,R>> nodes = new HashMap<>();
+    final Map<Ref<S>, Node<S,E,R>> nodes;
     private Node<S,E,R> current;
 
     public ProcessBuilderImpl(StateFactory<S> stateFactory) {
@@ -27,18 +30,20 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     private ProcessBuilderImpl(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef) {
+        this(stateFactory, startRef, endRef, new HashMap<>());
+    }
+    private ProcessBuilderImpl(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef, Map<Ref<S>, Node<S,E,R>> nodes) {
         requireNonNull(startRef);
         requireNonNull(endRef);
         requireNonNull(stateFactory);
+        requireNonNull(nodes);
+        this.nodes = nodes;
         this.stateFactory = stateFactory;
         this.endRef = endRef;
         this.startRef = startRef;
-        this.current = createNode(startRef);
+        this.current = getNodeByRef(startRef);
     }
 
-    Node<S,E,R> createNode(Ref<S> ref) {
-        return createNode(ref, TAKE_NO_ACTION);
-    }
     Node<S,E,R> createNode(Ref<S> ref, Action<R, Object> action) {
         if(this.nodes.containsKey(ref)) {
             throw new IllegalArgumentException("Ref is already known "+ ref);
@@ -55,40 +60,41 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
 
 
     @Override
-    public ProcessBuilder.StartedSyntax then(Action action) {
+    public ProcessBuilder.StartedSyntax<S, E, R> then(Action<R, Object> action) {
         current = current.then(action);
         return this;
     }
 
     @Override
-    public StartedSyntax then(Action action, Ref ref) {
+    public StartedSyntax<S,E,R> then(Action<R, Object> action, Ref<S> ref) {
         current = current.then(action, ref);
         return this;
     }
 
-
     @Override
-    public ProceedSyntax<S,E,R> choose(ChooseSyntax chooseSyntax) {
-        current.choose(chooseSyntax);
+    public ProceedSyntax<S, E, R> choose(Function<ChooseSyntax<S, E, R>, ChooseSyntax.End<S,E,R>> choose) {
+        current.choose(choose);
+        current = null;
         return this;
     }
 
     public ProcessBuilderImpl<S,E,R> createSubProcessBuilder(Ref startRef) {
-        return new ProcessBuilderImpl<>(this.stateFactory, startRef, endRef);
+        return new ProcessBuilderImpl<>(this.stateFactory, startRef, endRef, nodes);
     }
 
     @Override
-    public ProcessBuilder.ProceedSyntax stay(StayUntil exitClause) {
-        current.stay(exitClause);
+    public ProceedSyntax<S, E, R> waitFor(Consumer<EventExitSyntax<S, E, R>> events) {
+        events.accept(new EventExitSyntaxImpl<>(current));
+        current = null;
         return this;
     }
 
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S,E,R> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process) {
+    public ProcessBuilder.ProceedSyntax<S,E,R> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
         ProcessBuilderImpl<S,E,R> subProcessBuilder = createSubProcessBuilder(ref);
         process.accept(subProcessBuilder);
-        this.current = getNodeByRef(ref);
+        this.current = null;
         return this;
     }
 
@@ -101,7 +107,10 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
 
     @Override
     public ProcessBuilder end() {
-        then(TAKE_NO_ACTION, endRef);
+        getNodeByRef(endRef);
+        if(this.current != null) {
+            this.current.addExit(new Exit<>(endRef, (E) Node.THEN, Guard.ALLOW));
+        }
         return this;
     }
 

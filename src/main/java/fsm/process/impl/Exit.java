@@ -5,8 +5,8 @@ import fsm.process.Ref;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-class Exit<S> {
+class Exit<S, E, R> {
     final Ref<S> refTo;
-    final Object event;
-    final Guard guard;
+    final E event;
+    final Guard<R, Object> guard;
 }

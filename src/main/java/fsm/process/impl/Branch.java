@@ -13,7 +13,7 @@ public class Branch<S,E,R> implements ProcessBuilder.ProceedSyntax<S,E,R> {
     final ProcessBuilderImpl<S,E,R> processBuilder;
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S,E,R> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax> process) {
+    public ProcessBuilder.ProceedSyntax<S,E,R> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
         ProcessBuilderImpl<S,E,R> subProcessBuilder = processBuilder.createSubProcessBuilder(ref);
         process.accept(subProcessBuilder);
         return processBuilder;
