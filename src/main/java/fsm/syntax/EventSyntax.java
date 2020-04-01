@@ -9,6 +9,7 @@
 package fsm.syntax;
 
 import fsm.StateHandler;
+import lombok.RequiredArgsConstructor;
 
 /**
  *
@@ -22,13 +23,10 @@ public interface EventSyntax<S, E, R> {
 
     <P> TransitionSyntax<S, E, R, P> on(E event, Class<P> payload);
 
+    @RequiredArgsConstructor
     class Impl<S, E, R> implements EventSyntax<S, E, R> {
 
-        private StateHandler handler;
-
-        public Impl(final StateHandler handler) {
-            this.handler = handler;
-        }
+        private final StateHandler<S,E,R> handler;
 
         @Override
         public <P> TransitionSyntax<S,E,R,P> on(E event, Class<P> payloadClass) {

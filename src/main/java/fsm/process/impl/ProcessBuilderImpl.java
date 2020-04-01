@@ -119,11 +119,10 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
         final FsmDefinition definition = new FsmDefinition();
         nodes.keySet().forEach(ref -> register(ref, definition));
         nodes.entrySet()
-                .stream()
                 .forEach(e -> {
                     Ref<S> ref = e.getKey();
                     Node<S,E,R> node = e.getValue();
-                    node.exits.stream()
+                    node.exits
                             .forEach(exit -> {
                                 Node<S,E,R> nodeTo = nodes.get(exit.refTo);
                                 definition.in(ref.getState()).on(exit.event).onlyIf(exit.guard).transition(nodeTo.onEnter).to(exit.refTo.getState());

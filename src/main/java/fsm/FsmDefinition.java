@@ -68,7 +68,7 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
                 .map(stateHandlers::get)
                 .flatMap(h ->
                         ofNullable(event)
-                                .map(e -> h.knowsHowToHandle(e))
+                                .map(h::knowsHowToHandle)
                 )
                 .orElse(false);
     }
@@ -123,7 +123,6 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
             StringBuilder b = new StringBuilder();
             b.append("Current state: ").append(currentState).append("\n");
             stateHandlers.entrySet()
-                    .stream()
                     .forEach(e -> b.append("State "+e.getKey()+" events:").append(" {").append(e.getValue().toString()).append("}\n"));
 
             return b.toString();

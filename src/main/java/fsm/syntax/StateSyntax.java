@@ -11,6 +11,7 @@ package fsm.syntax;
 import fsm.Action;
 import fsm.Guard;
 import fsm.StateHandler;
+import lombok.RequiredArgsConstructor;
 
 import static fsm.Guard.and;
 
@@ -24,15 +25,11 @@ public interface StateSyntax<S, E, R> {
 
     void keepState();
 
+    @RequiredArgsConstructor
     class Impl<S, E, R, P> implements StateSyntax<S, E, R> {
 
-        private TransitionSyntax.Impl<S,E,R,P> transition;
-        private Action<R, P> action;
-
-        public Impl(final TransitionSyntax.Impl<S,E,R,P> transition, final Action<R, P> action) {
-            this.transition = transition;
-            this.action = action;
-        }
+        private final  TransitionSyntax.Impl<S,E,R,P> transition;
+        private final Action<R, P> action;
 
         @Override
         public void to(S state) {

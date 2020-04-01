@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static fsm.process.ProcessUtil.run;
 import static org.junit.Assert.assertEquals;
@@ -92,10 +91,10 @@ public class ProcessTest {
                 .then(A)
                 .waitFor(
                         events -> events
-                                .add("TIMEOUT", b -> b.end())
+                                .add("TIMEOUT", ProcessBuilder.EndSyntax::end)
                                 .add("HELLO", b -> b.then(B).end())
                 )
-                .add(new Ref<>(),  b -> b.end())
+                .add(new Ref<>(), ProcessBuilder.EndSyntax::end)
                 .end()
                 .build();
 
@@ -114,8 +113,6 @@ public class ProcessTest {
     public void chooseExample() {
 
         Ref<Integer> refE = new Ref<>();
-        Consumer<ProcessBuilder.StartedSyntax<Integer, String, Map>> sdfasdf = b -> b.then(A).end();
-
         Process<Integer, String, Map> process = ProcessBuilder.builder()
                 .start()
                 .choose(
@@ -123,7 +120,7 @@ public class ProcessTest {
                                 .when(ALLOW, b -> b.then(B).go(refE))
                                 .otherwise(refE)
                 )
-                .add(refE, (ProcessBuilder.StartedSyntax<Integer, String, Map> b) -> b.end())
+                .add(refE, ProcessBuilder.EndSyntax::end)
                 .end()
                 .build();
 

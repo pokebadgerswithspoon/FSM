@@ -18,10 +18,10 @@ import static org.junit.Assert.assertEquals;
  */
 public class FsmTest {
 
-    static Action<Runtime, Integer> increment = (runtime, e) -> {
+    static final Action<Runtime, Integer> increment = (runtime, e) -> {
         runtime.knock++;
     };
-    static Action<Runtime, Integer> log = (runtime, e) -> {
+    static final Action<Runtime, Integer> log = (runtime, e) -> {
         System.out.println("Knock "+ runtime.knock);
         System.out.println("Payload: "+ e);
     };

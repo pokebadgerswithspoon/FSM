@@ -24,14 +24,14 @@ class ChooseSyntaxImpl<S,E,R> implements ChooseSyntax<S,E,R>, ChooseSyntax.End<S
     public ChooseSyntaxImpl<S,E,R> when(Guard<R,Object> guard, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> config) {
         Ref refTo = new Ref();
         config.accept(node.processBuilder.createSubProcessBuilder(refTo));
-        exits.add(new Exit<>(refTo, (E) Node.THEN, guard));
+        exits.add(new Exit<>(refTo, Node.THEN, guard));
         return end();
     }
     public ChooseSyntaxImpl<S,E,R> otherwise(Consumer<ProcessBuilder.StartedSyntax<S,E,R>> config) {
         Guard<R, Object> otherwise = otherwiseGuard();
         Ref refTo = new Ref();
         config.accept(node.processBuilder.createSubProcessBuilder(refTo));
-        exits.add(new Exit<>(refTo, (E) Node.THEN, otherwise));
+        exits.add(new Exit<>(refTo, Node.THEN, otherwise));
         return end();
     }
 

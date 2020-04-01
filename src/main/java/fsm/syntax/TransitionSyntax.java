@@ -33,7 +33,7 @@ public interface TransitionSyntax<S, E, R, P> {
         E event;
         Collection<Guard<R, P>> guards = null;
 
-        public Impl(final StateHandler handler, final E event) {
+        public Impl(final StateHandler<S,E,R> handler, final E event) {
             this.handler = handler;
             this.event = event;
         }

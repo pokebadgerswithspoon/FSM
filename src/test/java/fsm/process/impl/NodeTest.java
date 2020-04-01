@@ -20,7 +20,7 @@ public class NodeTest {
     @Mock
     Action action;
 
-    ProcessBuilderImpl processBuilder = new ProcessBuilderImpl(new IntStateFactory());
+    final ProcessBuilderImpl processBuilder = new ProcessBuilderImpl(new IntStateFactory());
 
     @Test
     public void testThen() {

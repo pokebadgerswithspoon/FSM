@@ -22,8 +22,8 @@ public interface TransitionContext<S,E> {
 
     class Impl<S,E> implements TransitionContext<S,E> {
 
-        private S from, to;
-        private Event<E,?> event;
+        private final S from, to;
+        private final Event<E,?> event;
 
         public Impl(S from, S to, Event<E,?> event) {
             this.from = from;

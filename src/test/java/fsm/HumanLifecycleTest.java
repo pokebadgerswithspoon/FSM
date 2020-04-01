@@ -35,11 +35,11 @@ public class HumanLifecycleTest {
         WAKE,
     }
 
-    class HumanBody {
+    static class HumanBody {
 
         int ageTicks = 0;
         int food = 10;
-        int tireness = 0;
+        int tiredness = 0;
     }
 
     @Test
@@ -50,7 +50,7 @@ public class HumanLifecycleTest {
         human.on(TICK).transition((body, p) -> {
             body.ageTicks++;
             body.food--;
-            body.tireness++;
+            body.tiredness++;
             log("body.food  = " +body.food);
         }).keepState();
         human.on(TICK).onlyIf((body, payload) ->  body.food < 0).transition().to(DEAD);

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public class StateHandler<S, E, R> {
 
-    Map<E, Deque<EventHandler<S, E, R, ?>>> eventMap = new HashMap<>();
+    final Map<E, Deque<EventHandler<S, E, R, ?>>> eventMap = new HashMap<>();
 
     public <P> void register(E event, Action<R,P> action, Guard<R,P> guard, S stateTo) {
         Deque<EventHandler<S, E, R, ?>> handlers = handlers(event);
@@ -72,9 +72,9 @@ public class StateHandler<S, E, R> {
 
     private static class EventHandler<S, E, R, P> {
 
-        private Action<R, P> action;
-        private Guard<R, P> guard;
-        private S stateTo;
+        final Action<R, P> action;
+        final Guard<R, P> guard;
+        final S stateTo;
 
         EventHandler(Action<R, P> action, Guard<R, P> guard, S stateTo) {
             this.action = action == null ? Action.TAKE_NO_ACTION : action;
