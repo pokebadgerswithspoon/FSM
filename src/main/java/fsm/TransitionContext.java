@@ -14,13 +14,13 @@ package fsm;
  */
 public interface TransitionContext<S,E> {
 
-    public S getFrom();
+    S getFrom();
 
-    public S getTo();
+    S getTo();
 
-    public Event<E,?> getEvent();
+    Event<E,?> getEvent();
 
-    static class Impl<S,E> implements TransitionContext<S,E> {
+    class Impl<S,E> implements TransitionContext<S,E> {
 
         private S from, to;
         private Event<E,?> event;

@@ -8,9 +8,10 @@
  */
 package fsm.syntax;
 
-import fsm.StateHandler;
 import fsm.Action;
 import fsm.Guard;
+import fsm.StateHandler;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -18,19 +19,19 @@ import java.util.Collection;
  *
  * @author lauri
  */
-public interface TransitionSyntax<S, E, R> {
+public interface TransitionSyntax<S, E, R, P> {
 
-    public StateSyntax<S, E, R> transition();
+    StateSyntax<S, E, R> transition();
 
-    public StateSyntax<S, E, R> transition(Action<R,?> action);
+    StateSyntax<S, E, R> transition(Action<R, P> action);
 
-    public TransitionSyntax<S, E, R> onlyIf(Guard<R,?> guard);
+    TransitionSyntax<S, E, R, P> onlyIf(Guard<R, P> guard);
 
-    static class Impl<S, E, R> implements TransitionSyntax<S, E, R> {
+    class Impl<S, E, R, P> implements TransitionSyntax<S, E, R, P> {
 
-        StateHandler handler;
+        StateHandler<S,E,R> handler;
         E event;
-        Collection<Guard> guards = null;
+        Collection<Guard<R, P>> guards = null;
 
         public Impl(final StateHandler handler, final E event) {
             this.handler = handler;
@@ -43,17 +44,17 @@ public interface TransitionSyntax<S, E, R> {
         }
 
         @Override
-        public StateSyntax<S, E, R> transition(Action action) {
-            return new StateSyntax.Impl(this, action);
+        public StateSyntax<S, E, R> transition(Action<R, P> action) {
+            return new StateSyntax.Impl<>(this, action);
         }
 
         @Override
-        public TransitionSyntax onlyIf(Guard guard) {
+        public TransitionSyntax<S,E,R,P> onlyIf(Guard<R, P> guard) {
             if(guard == null) {
                 return this;
             }
             if(guards == null) {
-                guards = new ArrayList();
+                guards = new ArrayList<>();
             }
             guards.add(guard);
             return this;

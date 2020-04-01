@@ -40,8 +40,8 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
         return node;
     }
 
-    Node<S,E,R> addExit(Object event, Ref<S> refTo, Guard guard) {
-        return addExit(new Exit<>(refTo, event, guard));
+    Node<S,E,R> addExit(E event, Ref<S> refTo, Guard guard) {
+        return addExit(new Exit<S, E, R>(refTo, event, guard));
     }
     Node<S,E,R> addExit(Exit<S,E,R> exit) {
         Node<S,E,R> node = processBuilder.getNodeByRef(exit.refTo);

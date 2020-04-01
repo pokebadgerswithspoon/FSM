@@ -8,9 +8,10 @@
  */
 package fsm.syntax;
 
-import fsm.StateHandler;
 import fsm.Action;
 import fsm.Guard;
+import fsm.StateHandler;
+
 import static fsm.Guard.and;
 
 /**
@@ -19,27 +20,27 @@ import static fsm.Guard.and;
  */
 public interface StateSyntax<S, E, R> {
 
-    public void to(S state2);
+    void to(S state2);
 
-    public void keepState();
+    void keepState();
 
-    static class Impl<S, E, R> implements StateSyntax<S, E, R> {
+    class Impl<S, E, R, P> implements StateSyntax<S, E, R> {
 
-        private TransitionSyntax.Impl<S,E,R> transtition;
-        private Action action;
+        private TransitionSyntax.Impl<S,E,R,P> transition;
+        private Action<R, P> action;
 
-        public Impl(final TransitionSyntax.Impl transition, final Action action) {
-            this.transtition = transition;
+        public Impl(final TransitionSyntax.Impl<S,E,R,P> transition, final Action<R, P> action) {
+            this.transition = transition;
             this.action = action;
         }
 
         @Override
         public void to(S state) {
-            StateHandler<S, E, R> stateHandler = transtition.handler;
-            E event = transtition.event;
-            Guard guard = transtition.guards == null
+            StateHandler<S, E, R> stateHandler = transition.handler;
+            E event = transition.event;
+            Guard<R, P> guard = transition.guards == null
                     ? null
-                    : and(transtition.guards);
+                    : and(transition.guards);
             stateHandler.register(event, action, guard, state);
         }
 

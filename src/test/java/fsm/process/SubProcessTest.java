@@ -7,18 +7,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Map;
+
 import static fsm.process.ProcessUtil.run;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SubProcessTest {
 
     @Mock
-    private Action doSomething;
+    private Action<Map, Object> doSomething;
 
     @Test
     public void testSimpleProcess() {

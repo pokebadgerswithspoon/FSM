@@ -45,7 +45,7 @@ public class HumanLifecycleTest {
     @Test
     public void testBabyFsm() {
 
-        FsmDefinition<State, Events, HumanBody> human = new FsmDefinition();
+        FsmDefinition<State, Events, HumanBody> human = new FsmDefinition<>();
 
         human.on(TICK).transition((body, p) -> {
             body.ageTicks++;

@@ -24,17 +24,17 @@ import static java.util.Optional.ofNullable;
  */
 public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
 
-    private final StateHandler<S, E, R> anyStateHandler = new StateHandler();
+    private final StateHandler<S, E, R> anyStateHandler = new StateHandler<>();
     private final Map<S, StateHandler<S, E, R>> stateHandlers;
 
     public FsmDefinition() {
-        stateHandlers = new HashMap();
+        stateHandlers = new HashMap<>();
     }
 
     @Override
     public EventSyntax<S, E, R> in(S state) {
-        StateHandler handler = handler(state);
-        return new EventSyntax.Impl(handler);
+        StateHandler<S,E,R> handler = handler(state);
+        return new EventSyntax.Impl<>(handler);
     }
 
     public void registerState(S state) {
@@ -42,14 +42,14 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
     }
 
     @Override
-    public TransitionSyntax<S, E, R> on(E event) {
-        return new TransitionSyntax.Impl(anyStateHandler, event);
+    public <P> TransitionSyntax<S, E, R, P> on(E event, Class<P> payloadClass) {
+        return new TransitionSyntax.Impl<>(anyStateHandler, event);
     }
 
-    private StateHandler handler(S state) {
-        StateHandler result = stateHandlers.get(state);
+    private StateHandler<S,E,R> handler(S state) {
+        StateHandler<S,E,R> result = stateHandlers.get(state);
         if (result == null) {
-            result = new StateHandler();
+            result = new StateHandler<>();
             stateHandlers.put(state, result);
         }
         return result;
@@ -94,12 +94,12 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
 
         @Override
         public void handle(E event) {
-            handle(new Event(event));
+            handle(new Event<>(event));
         }
 
         @Override
         public <P> void handle(E event, P payload) {
-            handle(new Event(event, payload));
+            handle(new Event<>(event, payload));
         }
 
         void handle(Event<E, Object> e) {

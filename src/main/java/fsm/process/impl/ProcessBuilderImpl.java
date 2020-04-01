@@ -55,7 +55,7 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     Node<S,E,R> getNodeByRef(Ref<S> ref) {
-        return nodes.computeIfAbsent(ref, (r) -> new Node<>(this, r, TAKE_NO_ACTION));
+        return nodes.computeIfAbsent(ref, (r) -> new Node<S, E, R>(this, r, TAKE_NO_ACTION));
     }
 
 
@@ -79,7 +79,7 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     public ProcessBuilderImpl<S,E,R> createSubProcessBuilder(Ref startRef) {
-        return new ProcessBuilderImpl<>(this.stateFactory, startRef, endRef, nodes);
+        return new ProcessBuilderImpl<S,E,R>(this.stateFactory, startRef, endRef, nodes);
     }
 
     @Override
@@ -99,23 +99,23 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     @Override
-    public void go(Ref ref) {
+    public void go(Ref<S> ref) {
         current.go(ref);
     }
 
 
 
     @Override
-    public ProcessBuilder end() {
+    public ProcessBuilder<S,E,R> end() {
         getNodeByRef(endRef);
         if(this.current != null) {
-            this.current.addExit(new Exit<>(endRef, (E) Node.THEN, Guard.ALLOW));
+            this.current.addExit(new Exit<S,E,R>(endRef, (E) Node.THEN, Guard.ALLOW));
         }
         return this;
     }
 
     @Override
-    public Process build() {
+    public Process<S,E,R> build() {
         final FsmDefinition definition = new FsmDefinition();
         nodes.keySet().forEach(ref -> register(ref, definition));
         nodes.entrySet()
