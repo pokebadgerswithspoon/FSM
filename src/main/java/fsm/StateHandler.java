@@ -36,9 +36,9 @@ public class StateHandler<S, E, R> {
     /**
      * Handle event in given state
      *
-     * @param state 
-     * @param event 
-     * @param runtime 
+     * @param state the machine is in
+     * @param event with payload
+     * @param runtime execution runtime
      * @return new state or null if no action taken
      */
     public <P> S handle(S state, Event<E,P> event, R runtime) {

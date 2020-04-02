@@ -12,8 +12,8 @@ import fsm.Action;
 import fsm.Guard;
 import fsm.StateHandler;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -29,9 +29,9 @@ public interface TransitionSyntax<S, E, R, P> {
 
     class Impl<S, E, R, P> implements TransitionSyntax<S, E, R, P> {
 
-        StateHandler<S,E,R> handler;
-        E event;
-        Collection<Guard<R, P>> guards = null;
+        final StateHandler<S,E,R> handler;
+        final E event;
+        final List<Guard<R, P>> guards = new LinkedList<>();
 
         public Impl(final StateHandler<S,E,R> handler, final E event) {
             this.handler = handler;
@@ -52,9 +52,6 @@ public interface TransitionSyntax<S, E, R, P> {
         public TransitionSyntax<S,E,R,P> onlyIf(Guard<R, P> guard) {
             if(guard == null) {
                 return this;
-            }
-            if(guards == null) {
-                guards = new ArrayList<>();
             }
             guards.add(guard);
             return this;

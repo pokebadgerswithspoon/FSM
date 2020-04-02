@@ -35,7 +35,7 @@ public interface StateSyntax<S, E, R> {
         public void to(S state) {
             StateHandler<S, E, R> stateHandler = transition.handler;
             E event = transition.event;
-            Guard<R, P> guard = transition.guards == null
+            Guard<R, P> guard = transition.guards.isEmpty()
                     ? null
                     : and(transition.guards);
             stateHandler.register(event, action, guard, state);
