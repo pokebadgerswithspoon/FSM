@@ -36,7 +36,7 @@ public interface ProcessBuilder<S,E,R> {
 
         ProceedSyntax<S,E,R> choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End<S,E,R>> choose);
 
-        ProceedSyntax<S,E,R> waitFor(Consumer<EventExitSyntax<S,E,R>> events);
+        ProceedSyntax<S,E,R> stay(Consumer<EventExitSyntax<S,E,R>> leave);
 
         void go(Ref<S> ref);
     }
@@ -50,16 +50,16 @@ public interface ProcessBuilder<S,E,R> {
     }
     interface EventExitSyntax<S,E,R> {
 
-        default EventExitSyntax<S,E,R> add(E event, Ref<S> refTo) {
-            return this.add(event, refTo, null);
+        default EventExitSyntax<S,E,R> on(E event, Ref<S> refTo) {
+            return this.on(event, refTo, null);
         }
-        EventExitSyntax<S, E, R> add(E event, Ref<S> refTo, Guard<R, Object> guard);
+        EventExitSyntax<S, E, R> on(E event, Ref<S> refTo, Guard<R, Object> guard);
 
-        default EventExitSyntax<S,E,R> add(E event, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
+        default EventExitSyntax<S,E,R> on(E event, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
             Guard<R, Object> ALLOW = (r, p) -> true;
-            return this.add(event, ALLOW, process);
+            return this.on(event, ALLOW, process);
         }
-        EventExitSyntax<S, E, R> add(E event, Guard<R, Object> guard, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process);
+        EventExitSyntax<S, E, R> on(E event, Guard<R, Object> guard, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process);
     }
 
     interface ChooseSyntax<S, E, R> {

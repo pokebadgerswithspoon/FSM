@@ -70,8 +70,8 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
     }
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S, E, R> waitFor(Consumer<ProcessBuilder.EventExitSyntax<S, E, R>> events) {
-        events.accept(new EventExitSyntaxImpl<>(this));
+    public ProcessBuilder.ProceedSyntax<S, E, R> stay(Consumer<ProcessBuilder.EventExitSyntax<S, E, R>> leave) {
+        leave.accept(new EventExitSyntaxImpl<>(this));
         return newBranch();
     }
 }

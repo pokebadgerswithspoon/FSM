@@ -83,8 +83,8 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     @Override
-    public ProceedSyntax<S, E, R> waitFor(Consumer<EventExitSyntax<S, E, R>> events) {
-        events.accept(new EventExitSyntaxImpl<>(current));
+    public ProceedSyntax<S, E, R> stay(Consumer<EventExitSyntax<S, E, R>> leave) {
+        leave.accept(new EventExitSyntaxImpl<>(current));
         current = null;
         return this;
     }

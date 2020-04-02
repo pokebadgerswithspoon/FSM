@@ -72,7 +72,7 @@ public class ProcessTest {
         Ref<Integer> refB = new Ref<>("Ref B");
         Process<Integer, String, Map> process = ProcessBuilder.builder()
                 .start()
-                .waitFor(events -> events.add("EVENT", refB))
+                .stay(events -> events.on("EVENT", refB))
                 .add(refB, (b) -> b.then(B).end())
                 .end()
                 .build();
@@ -89,10 +89,10 @@ public class ProcessTest {
         Process<Integer, String, Map>  process = ProcessBuilder.builder()
                 .start()
                 .then(A)
-                .waitFor(
-                        events -> events
-                                .add("TIMEOUT", ProcessBuilder.EndSyntax::end)
-                                .add("HELLO", b -> b.then(B).end())
+                .stay(
+                        leave -> leave
+                                .on("TIMEOUT", ProcessBuilder.EndSyntax::end)
+                                .on("HELLO", b -> b.then(B).end())
                 )
                 .add(new Ref<>(), ProcessBuilder.EndSyntax::end)
                 .end()
@@ -108,6 +108,7 @@ public class ProcessTest {
         verify(A, times(1)).execute(any(), any());
         verify(B, times(0)).execute(any(), any());
     }
+
 
     @Test
     public void chooseExample() {

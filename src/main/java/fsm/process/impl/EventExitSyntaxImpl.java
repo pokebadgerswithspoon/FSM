@@ -13,13 +13,13 @@ class EventExitSyntaxImpl<S,E,R> implements ProcessBuilder.EventExitSyntax<S,E,R
     private final Guard<R, Object> ALLOW = (r, p) -> true;
 
     @Override
-    public ProcessBuilder.EventExitSyntax<S, E, R> add(E event, Ref<S> refTo, Guard<R, Object> guard) {
+    public ProcessBuilder.EventExitSyntax<S, E, R> on(E event, Ref<S> refTo, Guard<R, Object> guard) {
         node.addExit(event, refTo, guard == null?ALLOW:guard);
         return this;
     }
 
     @Override
-    public ProcessBuilder.EventExitSyntax<S, E, R> add(E event, Guard<R, Object> guard, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
+    public ProcessBuilder.EventExitSyntax<S, E, R> on(E event, Guard<R, Object> guard, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
         Ref<S> ref = new Ref<>();
         ProcessBuilderImpl<S, E, R> subProcessBuilder = node.processBuilder.createSubProcessBuilder(ref);
         process.accept(subProcessBuilder);
