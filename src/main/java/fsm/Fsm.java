@@ -20,7 +20,7 @@ public interface Fsm<S, E, R> {
      * @param event to handle
      */
     <P> void handle(E event, P payload);
-    public void handle(E event);
+    void handle(E event);
 
     /**
      * State of the machine

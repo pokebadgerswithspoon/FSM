@@ -9,6 +9,7 @@
 package fsm;
 
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -17,10 +18,10 @@ import static org.junit.Assert.assertEquals;
  */
 public class FsmTest {
 
-    static Action<Runtime, Integer> increment = (runtime, e) -> {
+    static final Action<Runtime, Integer> increment = (runtime, e) -> {
         runtime.knock++;
     };
-    static Action<Runtime, Integer> log = (runtime, e) -> {
+    static final Action<Runtime, Integer> log = (runtime, e) -> {
         System.out.println("Knock "+ runtime.knock);
         System.out.println("Payload: "+ e);
     };
@@ -28,12 +29,12 @@ public class FsmTest {
     @Test
     public void testDoubleMatchWithKeepState() {
 
-        FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
+        FsmDefinition<String, String, Runtime> rules = new FsmDefinition<>();
 
-        Action action = Action.combine(increment, log);
-        
-        rules.on("KNOCK").transition(action).keepState();
-        rules.in("INIT").on("KNOCK").transition(action).keepState();
+        Action<Runtime, Integer> action = Action.combine(increment, log);
+
+        rules.on("KNOCK", Integer.class).transition(action).keepState();
+        rules.in("INIT").on("KNOCK", Integer.class).transition(action).keepState();
 
         Runtime runtime = new Runtime();
         Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
@@ -47,8 +48,8 @@ public class FsmTest {
     public void testDoubleMatch() {
 
         FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
-        rules.on("KNOCK").transition(increment).keepState();
-        rules.in("INIT").on("KNOCK").transition(increment).to("THE END");
+        rules.on("KNOCK", Integer.class).transition(increment).keepState();
+        rules.in("INIT").on("KNOCK", Integer.class).transition(increment).to("THE END");
 
         Fsm<String, String, Runtime> fsm = rules.define(new Runtime(), "INIT");
 
@@ -62,9 +63,9 @@ public class FsmTest {
     @Test
     public void testDoubleMatch2() {
 
-        FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
-        rules.in("INIT").on("KNOCK").transition(increment).keepState();
-        rules.in("INIT").on("KNOCK").transition(increment).to("THE END");
+        FsmDefinition<String, String, Runtime> rules = new FsmDefinition<>();
+        rules.in("INIT").on("KNOCK", Integer.class).transition(increment).keepState();
+        rules.in("INIT").on("KNOCK", Integer.class).transition(increment).to("THE END");
 
         Runtime runtime = new Runtime();
         Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");

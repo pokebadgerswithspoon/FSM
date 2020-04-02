@@ -8,10 +8,12 @@
  */
 package fsm;
 
-import static fsm.HumanLifecycleTest.State.*;
-import static fsm.HumanLifecycleTest.Events.*;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static fsm.HumanLifecycleTest.Events.*;
+import static fsm.HumanLifecycleTest.State.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -33,23 +35,23 @@ public class HumanLifecycleTest {
         WAKE,
     }
 
-    class HumanBody {
+    static class HumanBody {
 
         int ageTicks = 0;
         int food = 10;
-        int tireness = 0;
+        int tiredness = 0;
     }
 
     @Test
     public void testBabyFsm() {
 
-        FsmDefinition<State, Events, HumanBody> human = new FsmDefinition();
+        FsmDefinition<State, Events, HumanBody> human = new FsmDefinition<>();
 
         human.on(TICK).transition((body, p) -> {
             body.ageTicks++;
             body.food--;
-            body.tireness++;
-            System.out.println("body.food  = " +body.food);
+            body.tiredness++;
+            log("body.food  = " +body.food);
         }).keepState();
         human.on(TICK).onlyIf((body, payload) ->  body.food < 0).transition().to(DEAD);
 
@@ -80,6 +82,6 @@ public class HumanLifecycleTest {
     }
 
     private static void log(Object o) {
-        System.out.println(o);
+//        System.out.println(o);
     }
 }

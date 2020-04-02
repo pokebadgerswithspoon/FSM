@@ -14,5 +14,5 @@ package fsm.syntax;
  */
 public interface FsmDefinitionSyntax<S,E,R> extends EventSyntax<S, E, R>{
 
-    public EventSyntax<S,E,R> in(S state);
+    EventSyntax<S,E,R> in(S state);
 }

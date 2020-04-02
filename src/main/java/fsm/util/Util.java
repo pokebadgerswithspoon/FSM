@@ -8,6 +8,7 @@
  */
 package fsm.util;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,7 +20,7 @@ public class Util {
 
     public static <T> Iterable<T> iterableNonNulls(T... items) {
         return Stream.of(items)
-                .filter(item -> item != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 }

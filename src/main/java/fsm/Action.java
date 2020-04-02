@@ -20,13 +20,13 @@ public interface Action<R, P> {
      * it's state
      *
      * @param runtime can be null
-     * @param transition never null
+     * @param payload of event that triggered the transition
      */
-    public void execute(R runtime, P payload);
+    void execute(R runtime, P payload);
 
-    public static final Action TAKE_NO_ACTION = (runtime, payload) -> {};
+    Action TAKE_NO_ACTION = (runtime, payload) -> {};
 
-    public static <R, P> Action<R, P> combine(Action<R, P>... actions) {
+    static <R, P> Action<R, P> combine(Action<R, P>... actions) {
         return (R runtime, P payload) -> {
             for (Action<R, P> action : actions) {
                 action.execute(runtime, payload);

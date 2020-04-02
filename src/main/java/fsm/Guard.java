@@ -21,20 +21,20 @@ public interface Guard<R, P> {
 
     Guard ALLOW = (runtime, payload) -> true;
 
-    static Guard not(Guard guard) {
-        return (runtime, payload) -> !guard.allow(runtime, payload);
+    static <R,P> Guard<R, P> not(Guard<R,P> guard) {
+        return (R runtime, P payload) -> !guard.allow(runtime, payload);
     }
 
-    static Guard and(Guard... guards) {
+    static <R, P> Guard<R, P> and(Guard<R, P>... guards) {
         return and(Arrays.asList(guards));
     }
 
-    static Guard and(Collection<Guard> guards) {
+    static <R, P> Guard<R, P> and(Collection<Guard<R,P>> guards) {
         if(guards.size() == 1) {
             return guards.iterator().next();
         }
         return (runtime, payload) -> {
-            for (Guard guard : guards) {
+            for (Guard<R, P> guard : guards) {
                 if (!guard.allow(runtime, payload)) {
                     return false;
                 }

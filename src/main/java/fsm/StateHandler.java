@@ -8,11 +8,7 @@
  */
 package fsm;
 
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -21,37 +17,39 @@ import java.util.stream.Collectors;
  */
 public class StateHandler<S, E, R> {
 
-    Map<E, Deque<EventHandler<S, E, R>>> eventMap = new HashMap();
+    final Map<E, Deque<EventHandler<S, E, R, ?>>> eventMap = new HashMap<>();
 
-    public void register(E event, Action<R,?> action, Guard<R,?> guard, S stateTo) {
-        Deque<EventHandler<S, E, R>> handlers = handlers(event);
-        handlers.addFirst(new EventHandler(action, guard, stateTo));
+    public <P> void register(E event, Action<R,P> action, Guard<R,P> guard, S stateTo) {
+        Deque<EventHandler<S, E, R, ?>> handlers = handlers(event);
+        handlers.addFirst(new EventHandler<>(action, guard, stateTo));
     }
 
-    private Deque<EventHandler<S, E, R>> handlers(E event) {
-        Deque<EventHandler<S, E, R>> result = eventMap.get(event);
-        if (result == null) {
-            result = new LinkedList<>();
-            eventMap.put(event, result);
+    private Deque<EventHandler<S, E, R, ?>> handlers(E event) {
+        Deque<EventHandler<S, E, R, ?>> eventHandlers = eventMap.get(event);
+        if (eventHandlers == null) {
+            eventHandlers = new LinkedList<>();
+            eventMap.put(event, eventHandlers);
         }
-        return result;
+        return eventHandlers;
     }
 
     /**
      * Handle event in given state
      *
-     * @param state 
-     * @param event 
-     * @param runtime 
+     * @param state the machine is in
+     * @param event with payload
+     * @param runtime execution runtime
      * @return new state or null if no action taken
      */
-    public S handle(S state, Event<E,Object> event, R runtime) {
-        Collection<EventHandler<S, E, R>> handlers = handlers(event.type);
+    public <P> S handle(S state, Event<E,P> event, R runtime) {
+        Collection<EventHandler<S, E, R, ?>> handlers = handlers(event.type);
         S stateTo = null;
-        for (EventHandler<S, E, R> handler : handlers) {
-            if (handler.guard.allow(runtime, event.payload)) {
+        for (EventHandler<S, E, R, ?> handler : handlers) {
+            Guard g = handler.guard;
+            if (g.allow(runtime, event.payload)) {
+                Action a = handler.action;
                 stateTo = handler.stateTo;
-                handler.action.execute(runtime, event.payload);
+                a.execute(runtime, event.payload);
                 break;
             }
         }
@@ -72,13 +70,13 @@ public class StateHandler<S, E, R> {
                         );
     }
 
-    private static class EventHandler<S, E, R> {
+    private static class EventHandler<S, E, R, P> {
 
-        private Action<R,Object> action;
-        private Guard guard;
-        private S stateTo;
+        final Action<R, P> action;
+        final Guard<R, P> guard;
+        final S stateTo;
 
-        EventHandler(Action action, Guard guard, S stateTo) {
+        EventHandler(Action<R, P> action, Guard<R, P> guard, S stateTo) {
             this.action = action == null ? Action.TAKE_NO_ACTION : action;
             this.guard = guard == null ? Guard.ALLOW : guard;
             this.stateTo = stateTo;
