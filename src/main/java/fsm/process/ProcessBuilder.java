@@ -20,7 +20,7 @@ public interface ProcessBuilder<S,E,R> {
         return new ProcessBuilderInitImpl<Integer, E, R>()
             .setRefFactory(stateFactory);
     }
-    static <S,E,R> StartSyntax builder(StateFactory<S> refFactory,Class<E> event, Class<R> runtime) {
+    static <S,E,R> StartSyntax<S, E, R> builder(StateFactory<S> refFactory,Class<E> event, Class<R> runtime) {
         return new ProcessBuilderInitImpl<S,E,R>()
             .setRefFactory(refFactory);
     }
