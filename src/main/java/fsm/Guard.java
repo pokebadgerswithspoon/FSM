@@ -52,4 +52,8 @@ public interface Guard<R, P> {
         return (r, p) -> guards.stream()
                     .anyMatch(g -> g.allow(r, p));
     }
+
+    static <R,P> Guard<R,P> unless(Guard<R,P>... guards) {
+        return not(or(guards));
+    }
 }
