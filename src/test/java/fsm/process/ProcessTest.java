@@ -73,7 +73,7 @@ public class ProcessTest {
         Process<Integer, String, Map> process = ProcessBuilder.builder()
                 .start()
                 .stay(events -> events.on("EVENT", refB))
-                .add(refB, (b) -> b.then(B).end())
+                .sub(refB, (b) -> b.then(B).end())
                 .end()
                 .build();
 
@@ -94,7 +94,7 @@ public class ProcessTest {
                                 .on("TIMEOUT", ProcessBuilder.EndSyntax::end)
                                 .on("HELLO", b -> b.then(B).end())
                 )
-                .add(new Ref<>(), ProcessBuilder.EndSyntax::end)
+                .sub(new Ref<>(), ProcessBuilder.EndSyntax::end)
                 .end()
                 .build();
 
@@ -121,7 +121,7 @@ public class ProcessTest {
                                 .when(ALLOW, b -> b.then(B).go(refE))
                                 .otherwise(refE)
                 )
-                .add(refE, ProcessBuilder.EndSyntax::end)
+                .sub(refE, ProcessBuilder.EndSyntax::end)
                 .end()
                 .build();
 
