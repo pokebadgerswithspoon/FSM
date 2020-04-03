@@ -10,6 +10,7 @@ package fsm;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  *
@@ -41,5 +42,18 @@ public interface Guard<R, P> {
             }
             return true;
         };
+    }
+
+    static <R, P> Guard<R, P> or(Guard<R, P>... guards) {
+        return or(Arrays.asList(guards));
+    }
+
+    static <R, P> Guard<R,P> or(List<Guard<R,P>> guards) {
+        return (r, p) -> guards.stream()
+                    .anyMatch(g -> g.allow(r, p));
+    }
+
+    static <R,P> Guard<R,P> unless(Guard<R,P>... guards) {
+        return not(or(guards));
     }
 }

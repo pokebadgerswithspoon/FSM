@@ -91,7 +91,7 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
 
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S,E,R> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
+    public ProcessBuilder.ProceedSyntax<S,E,R> sub(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
         ProcessBuilderImpl<S,E,R> subProcessBuilder = createSubProcessBuilder(ref);
         process.accept(subProcessBuilder);
         this.current = null;

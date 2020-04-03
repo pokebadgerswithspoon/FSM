@@ -42,7 +42,7 @@ public interface ProcessBuilder<S,E,R> {
     }
 
     interface ProceedSyntax<S,E,R> extends EndSyntax<S,E,R> {
-        ProcessBuilder.ProceedSyntax<S,E,R> add(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process);
+        ProcessBuilder.ProceedSyntax<S,E,R> sub(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process);
     }
 
     interface EndSyntax<S,E,R> {
@@ -51,13 +51,12 @@ public interface ProcessBuilder<S,E,R> {
     interface EventExitSyntax<S,E,R> {
 
         default EventExitSyntax<S,E,R> on(E event, Ref<S> refTo) {
-            return this.on(event, refTo, null);
+            return this.on(event, null, refTo);
         }
-        EventExitSyntax<S, E, R> on(E event, Ref<S> refTo, Guard<R, Object> guard);
+        EventExitSyntax<S, E, R> on(E event, Guard<R, Object> guard, Ref<S> refTo);
 
         default EventExitSyntax<S,E,R> on(E event, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
-            Guard<R, Object> ALLOW = (r, p) -> true;
-            return this.on(event, ALLOW, process);
+            return this.on(event, null, process);
         }
         EventExitSyntax<S, E, R> on(E event, Guard<R, Object> guard, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process);
     }
