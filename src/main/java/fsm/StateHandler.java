@@ -9,6 +9,7 @@
 package fsm;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -17,15 +18,31 @@ import java.util.stream.Collectors;
  */
 public class StateHandler<S, E, R> {
 
-    final Map<E, Deque<EventHandler<S, E, R, ?>>> eventMap = new HashMap<>();
+    final Map<E, LinkedList<EventHandler<S, E, R, ?>>> eventMap = new HashMap<>();
+    private final BiConsumer<LinkedList<EventHandler<S, E, R, ?>>, EventHandler<S,E,R,?>> addHandler;
 
-    public <P> void register(E event, Action<R,P> action, Guard<R,P> guard, S stateTo) {
-        Deque<EventHandler<S, E, R, ?>> handlers = handlers(event);
-        handlers.addFirst(new EventHandler<>(action, guard, stateTo));
+    StateHandler(FsmDefinition.ExecutionOrder order) {
+        switch (order) {
+            case LAST_TO_FIRST:
+                addHandler = (h, e) -> h.addFirst(e);
+                break;
+            case FIRST_TO_LAST:
+                addHandler = (h, e) -> h.add(e);
+                break;
+            default:
+                throw new IllegalArgumentException("Unkown processing order setup");
+        }
     }
 
-    private Deque<EventHandler<S, E, R, ?>> handlers(E event) {
-        Deque<EventHandler<S, E, R, ?>> eventHandlers = eventMap.get(event);
+    public <P> void register(E event, Action<R,P> action, Guard<R,P> guard, S stateTo) {
+        addHandler.accept(
+                handlers(event),
+                new EventHandler<>(action, guard, stateTo)
+        );
+    }
+
+    private LinkedList<EventHandler<S, E, R, ?>> handlers(E event) {
+        LinkedList<EventHandler<S, E, R, ?>> eventHandlers = eventMap.get(event);
         if (eventHandlers == null) {
             eventHandlers = new LinkedList<>();
             eventMap.put(event, eventHandlers);
