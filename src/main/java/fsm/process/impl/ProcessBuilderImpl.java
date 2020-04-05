@@ -2,6 +2,7 @@ package fsm.process.impl;
 
 import fsm.Action;
 import fsm.FsmDefinition;
+import fsm.FsmDefinition.ExecutionOrder;
 import fsm.Guard;
 import fsm.process.Process;
 import fsm.process.ProcessBuilder;
@@ -58,7 +59,6 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
         return nodes.computeIfAbsent(ref, (r) -> new Node<S, E, R>(this, r, TAKE_NO_ACTION));
     }
 
-
     @Override
     public ProcessBuilder.StartedSyntax<S, E, R> then(Action<R, Object> action) {
         current = current.then(action);
@@ -103,8 +103,6 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
         current.go(ref);
     }
 
-
-
     @Override
     public ProcessBuilder<S,E,R> end() {
         getNodeByRef(endRef);
@@ -116,7 +114,7 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
 
     @Override
     public Process<S,E,R> build() {
-        final FsmDefinition definition = new FsmDefinition();
+        final FsmDefinition definition = new FsmDefinition(ExecutionOrder.FIRST_TO_LAST);
         nodes.keySet().forEach(ref -> register(ref, definition));
         nodes.entrySet()
                 .forEach(e -> {

@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static fsm.util.Util.iterableNonNulls;
+import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -24,12 +25,19 @@ import static java.util.Optional.ofNullable;
  */
 public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
 
-    private final StateHandler<S, E, R> anyStateHandler = new StateHandler<>();
-    private final Map<S, StateHandler<S, E, R>> stateHandlers;
+    private final StateHandler<S, E, R> anyStateHandler;
+    private final Map<S, StateHandler<S, E, R>> stateHandlers = new HashMap<>();
+    private final ExecutionOrder executionOrder;
 
     public FsmDefinition() {
-        stateHandlers = new HashMap<>();
+        this(ExecutionOrder.LAST_TO_FIRST);
     }
+    public FsmDefinition(ExecutionOrder executionOrder) {
+        requireNonNull(executionOrder);
+        this.executionOrder = executionOrder;
+        this.anyStateHandler = new StateHandler<>(executionOrder);
+    }
+
 
     @Override
     public EventSyntax<S, E, R> in(S state) {
@@ -49,7 +57,7 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
     private StateHandler<S,E,R> handler(S state) {
         StateHandler<S,E,R> result = stateHandlers.get(state);
         if (result == null) {
-            result = new StateHandler<>();
+            result = new StateHandler<>(executionOrder);
             stateHandlers.put(state, result);
         }
         return result;
@@ -75,6 +83,11 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
 
     public Set<S> states() {
         return stateHandlers.keySet();
+    }
+
+    public enum ExecutionOrder {
+        LAST_TO_FIRST,
+        FIRST_TO_LAST;
     }
 
     private class FsmImpl implements Fsm<S, E, R> {
