@@ -1,4 +1,9 @@
+#vscode
 .settings
+.classpath
+.factorypath
+.project
+
 
 # Compiled class file
 *.class
