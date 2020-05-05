@@ -28,6 +28,10 @@ public class ProcessTest {
     Action<Map, Object> B;
     Action logE = (r, p) -> log.info("Event");
 
+    /**
+     * <img src="doc-files/emptyExample.png"/>
+     * <a href="doc-files/emptyExample.bpmn20.xml">BPMN</a>
+     */
     @Test
     public void emptyExample() {
         Process<Integer, String, Map>  process = ProcessBuilder.builder()
@@ -42,6 +46,10 @@ public class ProcessTest {
         run(process);
     }
 
+    /**
+     * <img src="doc-files/plainExample.png"/>
+     * <a href="doc-files/plainExample.bpmn20.xml">BPMN</a>
+     */
     @Test
     public void plainExample() {
         Process<Integer, String, Map> process = ProcessBuilder.builder()
@@ -58,6 +66,10 @@ public class ProcessTest {
         verify(A, times(1)).execute(any(), any());
     }
 
+    /**
+     * <img src="doc-files/loopExample.png"/>
+     * <a href="doc-files/loopExample.bpmn20.xml">BPMN</a>
+     */
     @Test
     public void loopExample() {
         Ref<Integer> refA = new Ref<>();
@@ -67,6 +79,10 @@ public class ProcessTest {
                 .go(refA);
     }
 
+    /**
+     * <img src="doc-files/eventExample.png"/>
+     * <a href="doc-files/eventExample.bpmn20.xml">BPMN</a>
+     */
     @Test
     public void eventExample() {
         Ref<Integer> refB = new Ref<>("Ref B");
@@ -84,6 +100,10 @@ public class ProcessTest {
         verify(B, times(1)).execute(any(), any());
     }
 
+    /**
+     * <img src="doc-files/eventsExample.png"/>
+     * <a href="doc-files/eventsExample.bpmn20.xml">BPMN</a>
+     */
     @Test
     public void eventsExample() {
         Process<Integer, String, Map>  process = ProcessBuilder.builder()
@@ -110,6 +130,10 @@ public class ProcessTest {
     }
 
 
+    /**
+     * <img src="doc-files/chooseExample.png"/>
+     * <a href="doc-files/chooseExample.bpmn20.xml">BPMN</a>
+     */
     @Test
     public void chooseExample() {
 
