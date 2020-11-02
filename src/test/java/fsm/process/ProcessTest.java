@@ -79,6 +79,7 @@ public class ProcessTest {
                 .then(refA, A)
                 .jump(refA);
 
+        // same result, different syntax
         ProcessBuilder.builder()
                 .start()
                 .label(refA)
@@ -115,8 +116,7 @@ public class ProcessTest {
     public void eventsExample() {
         Process<Integer, String, Map>  process = ProcessBuilder.builder()
                 .start()
-                .then(A)
-                .stay(
+                .thenWait(A,
                         leave -> leave
                                 .on("TIMEOUT", ProcessBuilder.EndSyntax::end)
                                 .on("HELLO", b -> b.then(B).end())
