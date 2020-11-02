@@ -30,15 +30,21 @@ public interface ProcessBuilder<S,E,R> {
     }
 
     interface StartedSyntax<S,E,R> extends EndSyntax<S,E,R> {
+        StartedSyntax<S,E,R> label(Ref<S> ref);
+
         StartedSyntax<S,E,R> then(Action<R, Object> action);
 
-        StartedSyntax<S,E,R> then(Action<R, Object> action, Ref<S> ref);
+        StartedSyntax<S,E,R> then(Ref<S> ref, Action<R, Object> action);
+
+        ProceedSyntax<S,E,R> thenWait(Action<R, Object> action, Consumer<EventExitSyntax<S,E,R>> leave);
+
+        ProceedSyntax<S,E,R> thenWait(Ref<S> ref, Action<R, Object> action, Consumer<EventExitSyntax<S,E,R>> leave);
 
         ProceedSyntax<S,E,R> choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End<S,E,R>> choose);
 
         ProceedSyntax<S,E,R> stay(Consumer<EventExitSyntax<S,E,R>> leave);
 
-        void go(Ref<S> ref);
+        void jump(Ref<S> ref);
     }
 
     interface ProceedSyntax<S,E,R> extends EndSyntax<S,E,R> {

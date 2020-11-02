@@ -27,17 +27,39 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
 
     @Override
     public Node<S,E,R> then(Action<R, Object> action) {
-        return then(action, new Ref<S>());
+        return then(new Ref<>(), action);
     }
 
     @Override
-    public Node<S,E,R> then(Action<R, Object> action, Ref<S> refTo) {
+    public Node<S,E,R> label(Ref<S> ref) {
+        return then(ref, Action.TAKE_NO_ACTION);
+    }
+
+    @Override
+    public ProcessBuilder.ProceedSyntax<S, E, R> thenWait(Action<R, Object> action, Consumer<ProcessBuilder.EventExitSyntax<S, E, R>> leave) {
+        leave.accept(new EventExitSyntaxImpl<>(this));
+        return newBranch();
+    }
+
+    @Override
+    public ProcessBuilder.ProceedSyntax<S, E, R> thenWait(Ref<S> ref, Action<R, Object> action, Consumer<ProcessBuilder.EventExitSyntax<S, E, R>> leave) {
+        return this.label(ref).thenWait(action, leave);
+    }
+
+    @Override
+    public Node<S,E,R> then(Ref<S> refTo, Action<R, Object> action) {
         if(!exits.isEmpty()) {
             throw new IllegalStateException("Can not apply .then() to this node");
         }
         Node<S,E,R> node = processBuilder.createNode(refTo, action);
         exits.add(new Exit<S, E, R>(node.ref, (E) THEN, Guard.ALLOW));
         return node;
+
+    }
+
+    @Deprecated
+    public Node<S,E,R> then(Action<R, Object> action, Ref<S> refTo) {
+        return this.then(refTo, action);
     }
 
     void addExit(E event, Ref<S> refTo, Guard guard) {
@@ -65,7 +87,7 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
     }
 
     @Override
-    public void go(Ref<S> ref) {
+    public void jump(Ref<S> ref) {
         exits.add(new Exit<S,E,R>(ref, (E) THEN, null));
     }
 

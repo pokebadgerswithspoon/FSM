@@ -20,8 +20,8 @@ import static java.util.Objects.requireNonNull;
 public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, ProcessBuilder.ProceedSyntax<S,E,R>, ProcessBuilder.StartedSyntax<S,E,R> {
 
     private final StateFactory<S> stateFactory;
-    final Ref<S> endRef;
-    final Ref<S> startRef;
+    private final Ref<S> endRef;
+    private final Ref<S> startRef;
 
     final Map<Ref<S>, Node<S,E,R>> nodes;
     private Node<S,E,R> current;
@@ -60,15 +60,35 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     @Override
+    public StartedSyntax<S, E, R> label(Ref<S> ref) {
+        requireNonNull(ref, "Can not label with null ref");
+        return current.label(ref);
+    }
+
+    @Override
     public ProcessBuilder.StartedSyntax<S, E, R> then(Action<R, Object> action) {
         current = current.then(action);
         return this;
     }
 
     @Override
-    public StartedSyntax<S,E,R> then(Action<R, Object> action, Ref<S> ref) {
-        current = current.then(action, ref);
+    public StartedSyntax<S, E, R> then(Ref<S> ref, Action<R, Object> action) {
+        current = current.then(ref, action);
         return this;
+    }
+
+
+    @Override
+    public ProceedSyntax<S, E, R> thenWait(Action<R, Object> action, Consumer<EventExitSyntax<S, E, R>> leave) {
+        this.then(action);
+        leave.accept(new EventExitSyntaxImpl<>(current));
+        current = null;
+        return this;
+    }
+
+    @Override
+    public ProceedSyntax<S, E, R> thenWait(Ref<S> ref, Action<R, Object> action, Consumer<EventExitSyntax<S, E, R>> leave) {
+        return null;
     }
 
     @Override
@@ -78,7 +98,7 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
         return this;
     }
 
-    public ProcessBuilderImpl<S,E,R> createSubProcessBuilder(Ref startRef) {
+    ProcessBuilderImpl<S,E,R> createSubProcessBuilder(Ref startRef) {
         return new ProcessBuilderImpl<S,E,R>(this.stateFactory, startRef, endRef, nodes);
     }
 
@@ -99,8 +119,8 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     @Override
-    public void go(Ref<S> ref) {
-        current.go(ref);
+    public void jump(Ref<S> ref) {
+        current.jump(ref);
     }
 
     @Override

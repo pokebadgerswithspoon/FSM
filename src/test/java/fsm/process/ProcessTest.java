@@ -73,10 +73,17 @@ public class ProcessTest {
     @Test
     public void loopExample() {
         Ref<Integer> refA = new Ref<>();
+
         ProcessBuilder.builder()
                 .start()
-                .then(A, refA)
-                .go(refA);
+                .then(refA, A)
+                .jump(refA);
+
+        ProcessBuilder.builder()
+                .start()
+                .label(refA)
+                .then(A)
+                .jump(refA);
     }
 
     /**
@@ -89,7 +96,7 @@ public class ProcessTest {
         Process<Integer, String, Map> process = ProcessBuilder.builder()
                 .start()
                 .stay(events -> events.on("EVENT", refB))
-                .sub(refB, (b) -> b.then(B).end())
+                .sub(refB, b -> b.then(B).end())
                 .end()
                 .build();
 
@@ -142,7 +149,7 @@ public class ProcessTest {
                 .start()
                 .choose(
                         choose -> choose
-                                .when(ALLOW, b -> b.then(B).go(refE))
+                                .when(ALLOW, b -> b.then(B).jump(refE))
                                 .otherwise(refE)
                 )
                 .sub(refE, ProcessBuilder.EndSyntax::end)
