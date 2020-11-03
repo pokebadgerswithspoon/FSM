@@ -38,21 +38,24 @@ public interface ProcessBuilder<S,E,R> {
 
     }
 
+    interface InProcessSyntax<S,E,R, SELF extends InProcessSyntax<S,E,R,SELF>> {
 
-    interface StartedSyntax<S,E,R> extends EndSyntax<BuilderSyntax<S,E,R>> {
-        StartedSyntax<S,E,R> label(Ref<S> ref);
+        SELF label(Ref<S> ref);
 
-        StartedSyntax<S,E,R> then(Action<R, Object> action);
+        SELF then(Action<R, Object> action);
 
-        StartedSyntax<S,E,R> then(Ref<S> ref, Action<R, Object> action);
+        SELF then(Ref<S> ref, Action<R, Object> action);
 
-        StartedSyntax<S,E,R> thenStay(Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
+        SELF thenStay(Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 
 //        StartedSyntax<S,E,R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 
-        StartedSyntax<S,E,R> choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End> choose);
+        SELF choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End> choose);
 
-        StartedSyntax<S,E,R> stay(Consumer<EventSyntax<S,E,R>> leave);
+        SELF stay(Consumer<EventSyntax<S,E,R>> leave);
+    }
+
+    interface StartedSyntax<S,E,R> extends InProcessSyntax<S,E,R, StartedSyntax<S,E,R>>, EndSyntax<BuilderSyntax<S,E,R>> {
     }
 
     interface EndSyntax<RESULT extends FinishedSyntax> {
@@ -60,33 +63,20 @@ public interface ProcessBuilder<S,E,R> {
     }
 
     interface EventSyntax<S,E,R> {
+
         default EventSyntax<S,E,R> on(E event, Ref<S> refTo) {
             return this.on(event, null, refTo);
         }
         EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, Ref<S> refTo);
 
-        default EventSyntax<S,E,R> on(E event, SubProcess process) {
+        default EventSyntax<S,E,R> on(E event, SubProcess<S,E,R> process) {
             return this.on(event, null, process);
         }
         EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, SubProcess process);
 
     }
 
-    interface SubProcessSyntax<S,E,R> extends JumpSyntax<S>, EndSyntax {
-
-//        SubProcessSyntax<S,E,R> label(Ref<S> ref);
-
-        SubProcessSyntax<S,E,R> then(Action<R, Object> action);
-
-        SubProcessSyntax<S,E,R> then(Ref<S> ref, Action<R, Object> action);
-
-//        SubProcessSyntax<S,E,R> thenStay(Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
-//
-//        SubProcessSyntax<S,E,R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
-//
-//        SubProcessSyntax<S,E,R> choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End> choose);
-//
-//        SubProcessSyntax<S,E,R> stay(Consumer<EventSyntax<S,E,R>> leave);
+    interface SubProcessSyntax<S,E,R> extends InProcessSyntax<S,E,R, SubProcessSyntax<S,E,R>>, JumpSyntax<S>, EndSyntax {
 
     }
 
@@ -95,8 +85,6 @@ public interface ProcessBuilder<S,E,R> {
     }
 
     interface ChooseSyntax<S, E, R> {
-        ChooseSyntax<S, E, R> when(Guard<R, Object> guard, Ref<S> refTo);
-
         ChooseSyntax<S, E, R> when(Guard<R, Object> guard, SubProcess<S,E,R> config);
 
         ChooseSyntax.End otherwise(SubProcess<S,E,R> config);

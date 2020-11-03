@@ -17,7 +17,9 @@ import java.util.function.Function;
 import static fsm.Action.TAKE_NO_ACTION;
 import static java.util.Objects.requireNonNull;
 
-public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, ProcessBuilder.StartedSyntax<S,E,R>, ProcessBuilder.FinishedSyntax {
+public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>,
+        ProcessBuilder.StartedSyntax<S,E,R>,
+        ProcessBuilder.FinishedSyntax {
 
     private final StateFactory<S> stateFactory;
     private final Ref<S> endRef;
