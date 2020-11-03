@@ -17,7 +17,7 @@ import java.util.function.Function;
 import static fsm.Action.TAKE_NO_ACTION;
 import static java.util.Objects.requireNonNull;
 
-public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, ProcessBuilder.StartedSyntax<S,E,R> {
+public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, ProcessBuilder.StartedSyntax<S,E,R>, ProcessBuilder.FinishedSyntax {
 
     private final StateFactory<S> stateFactory;
     private final Ref<S> endRef;
@@ -87,11 +87,6 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     @Override
-    public StartedSyntax<S, E, R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S, E, R>> leave) {
-        return null;
-    }
-
-    @Override
     public StartedSyntax<S, E, R> choose(Function<ChooseSyntax<S, E, R>, ChooseSyntax.End> choose) {
         current.choose(choose);
         current = null;
@@ -111,18 +106,14 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
 
 
     @Override
-    public void jump(Ref<S> ref) {
-        current.jump(ref);
-    }
-
-    @Override
-    public ProcessBuilder<S,E,R> end() {
+    public BuilderSyntax<S, E, R> end() {
         getNodeByRef(endRef);
         if(this.current != null) {
             this.current.addExit(new Exit<S,E,R>(endRef, (E) Node.THEN, Guard.ALLOW));
         }
-        return this;
+        return () -> this.build();
     }
+
 
     @Override
     public Process<S,E,R> build() {

@@ -48,7 +48,7 @@ public interface ProcessBuilder<S,E,R> {
 
         StartedSyntax<S,E,R> thenStay(Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 
-        StartedSyntax<S,E,R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
+//        StartedSyntax<S,E,R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 
         StartedSyntax<S,E,R> choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End> choose);
 

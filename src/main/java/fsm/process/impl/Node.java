@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
+class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
 
     static final Object THEN = "THEN";
     ProcessBuilderImpl<S,E,R> processBuilder;
@@ -36,15 +36,23 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
     }
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S, E, R> thenStay(Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
-        leave.accept(new EventSyntaxImpl<>(this));
-        return newBranch();
+    public ProcessBuilder.StartedSyntax<S, E, R> thenStay(Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
+        Node<S, E, R> node = processBuilder.createNode(new Ref<>(), action);
+        leave.accept(new EventSyntaxImpl<>(node));
+        return node;
     }
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S, E, R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
-        return this.label(ref).thenStay(action, leave);
+    public ProcessBuilder.StartedSyntax<S, E, R> stay(Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
+        Node<S, E, R> node = processBuilder.createNode(new Ref<>(), Action.TAKE_NO_ACTION);
+        leave.accept(new EventSyntaxImpl<>(node));
+        return node;
     }
+
+//    @Override
+//    public ProcessBuilder.ProceedSyntax<S, E, R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
+//        return this.label(ref).thenStay(action, leave);
+//    }
 
     @Override
     public Node<S,E,R> then(Ref<S> refTo, Action<R, Object> action) {
@@ -72,9 +80,10 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
     }
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S, E, R> choose(Function<ProcessBuilder.ChooseSyntax<S, E, R>, ProcessBuilder.ChooseSyntax.End<S,E,R>> choose) {
-        choose.apply(new ChooseSyntaxImpl<S,E,R>(this));
-        return newBranch();
+    public ProcessBuilder.StartedSyntax<S, E, R> choose(Function<ProcessBuilder.ChooseSyntax<S, E, R>, ProcessBuilder.ChooseSyntax.End> choose) {
+        Node<S,E,R> node = processBuilder.createNode(new Ref<>(), Action.TAKE_NO_ACTION);
+        choose.apply(new ChooseSyntaxImpl<S,E,R>(node));
+        return node;
     }
 
     private Branch<S,E,R> newBranch() {
@@ -82,18 +91,14 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
     }
 
     @Override
-    public ProcessBuilder<S,E,R> end() {
+    public ProcessBuilder.BuilderSyntax<S, E, R> end() {
         return processBuilder.end();
     }
 
-    @Override
-    public void jump(Ref<S> ref) {
-        exits.add(new Exit<S,E,R>(ref, (E) THEN, null));
-    }
+//    @Override
+//    public void jump(Ref<S> ref) {
+//        exits.add(new Exit<S,E,R>(ref, (E) THEN, null));
+//    }
 
-    @Override
-    public ProcessBuilder.ProceedSyntax<S, E, R> stay(Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
-        leave.accept(new EventSyntaxImpl<>(this));
-        return newBranch();
-    }
+
 }
