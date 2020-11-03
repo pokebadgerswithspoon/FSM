@@ -29,56 +29,87 @@ public interface ProcessBuilder<S,E,R> {
         StartedSyntax<S, E, R> start();
     }
 
-    interface StartedSyntax<S,E,R> extends EndSyntax<S,E,R> {
+    interface JumpSyntax<S> {
+
+        FinishedSyntax jump(Ref<S> ref);
+    }
+
+    interface FinishedSyntax {
+
+    }
+
+
+    interface StartedSyntax<S,E,R> extends EndSyntax<BuilderSyntax<S,E,R>> {
         StartedSyntax<S,E,R> label(Ref<S> ref);
 
         StartedSyntax<S,E,R> then(Action<R, Object> action);
 
         StartedSyntax<S,E,R> then(Ref<S> ref, Action<R, Object> action);
 
-        ProceedSyntax<S,E,R> thenWait(Action<R, Object> action, Consumer<EventExitSyntax<S,E,R>> leave);
+        StartedSyntax<S,E,R> thenStay(Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 
-        ProceedSyntax<S,E,R> thenWait(Ref<S> ref, Action<R, Object> action, Consumer<EventExitSyntax<S,E,R>> leave);
+        StartedSyntax<S,E,R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 
-        ProceedSyntax<S,E,R> choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End<S,E,R>> choose);
+        StartedSyntax<S,E,R> choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End> choose);
 
-        ProceedSyntax<S,E,R> stay(Consumer<EventExitSyntax<S,E,R>> leave);
-
-        void jump(Ref<S> ref);
+        StartedSyntax<S,E,R> stay(Consumer<EventSyntax<S,E,R>> leave);
     }
 
-    interface ProceedSyntax<S,E,R> extends EndSyntax<S,E,R> {
-        ProcessBuilder.ProceedSyntax<S,E,R> sub(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process);
+    interface EndSyntax<RESULT extends FinishedSyntax> {
+        RESULT end();
     }
 
-    interface EndSyntax<S,E,R> {
-        ProcessBuilder<S,E,R> end();
-    }
-    interface EventExitSyntax<S,E,R> {
-
-        default EventExitSyntax<S,E,R> on(E event, Ref<S> refTo) {
+    interface EventSyntax<S,E,R> {
+        default EventSyntax<S,E,R> on(E event, Ref<S> refTo) {
             return this.on(event, null, refTo);
         }
-        EventExitSyntax<S, E, R> on(E event, Guard<R, Object> guard, Ref<S> refTo);
+        EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, Ref<S> refTo);
 
-        default EventExitSyntax<S,E,R> on(E event, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
+        default EventSyntax<S,E,R> on(E event, SubProcess process) {
             return this.on(event, null, process);
         }
-        EventExitSyntax<S, E, R> on(E event, Guard<R, Object> guard, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process);
+        EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, SubProcess process);
+
+    }
+
+    interface SubProcessSyntax<S,E,R> extends JumpSyntax<S>, EndSyntax {
+
+//        SubProcessSyntax<S,E,R> label(Ref<S> ref);
+
+        SubProcessSyntax<S,E,R> then(Action<R, Object> action);
+
+        SubProcessSyntax<S,E,R> then(Ref<S> ref, Action<R, Object> action);
+
+//        SubProcessSyntax<S,E,R> thenStay(Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
+//
+//        SubProcessSyntax<S,E,R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
+//
+//        SubProcessSyntax<S,E,R> choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End> choose);
+//
+//        SubProcessSyntax<S,E,R> stay(Consumer<EventSyntax<S,E,R>> leave);
+
+    }
+
+    interface SubProcess<S,E,R> extends Function<SubProcessSyntax<S,E,R>, FinishedSyntax> {
+
     }
 
     interface ChooseSyntax<S, E, R> {
         ChooseSyntax<S, E, R> when(Guard<R, Object> guard, Ref<S> refTo);
 
-        ChooseSyntax<S, E, R> when(Guard<R, Object> guard, Consumer<ProcessBuilder.StartedSyntax<S, E, R>> config);
+        ChooseSyntax<S, E, R> when(Guard<R, Object> guard, SubProcess<S,E,R> config);
 
-        ChooseSyntax.End<S,E,R> otherwise(Consumer<ProcessBuilder.StartedSyntax<S, E, R>> config);
+        ChooseSyntax.End otherwise(SubProcess<S,E,R> config);
 
-        ChooseSyntax.End<S,E,R> otherwise(Ref<S> refTo);
+        ChooseSyntax.End otherwise(Ref<S> refTo);
 
-        interface End<S,E,R> {
+        interface End {
 
         }
+    }
+
+    interface BuilderSyntax<S,E,R> extends FinishedSyntax {
+        Process<S,E,R> build();
     }
 
     Process<S,E,R> build();

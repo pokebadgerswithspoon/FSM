@@ -17,7 +17,7 @@ import java.util.function.Function;
 import static fsm.Action.TAKE_NO_ACTION;
 import static java.util.Objects.requireNonNull;
 
-public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, ProcessBuilder.ProceedSyntax<S,E,R>, ProcessBuilder.StartedSyntax<S,E,R> {
+public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, ProcessBuilder.StartedSyntax<S,E,R> {
 
     private final StateFactory<S> stateFactory;
     private final Ref<S> endRef;
@@ -79,20 +79,20 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
 
 
     @Override
-    public ProceedSyntax<S, E, R> thenWait(Action<R, Object> action, Consumer<EventExitSyntax<S, E, R>> leave) {
+    public StartedSyntax<S, E, R> thenStay(Action<R, Object> action, Consumer<EventSyntax<S, E, R>> leave) {
         this.then(action);
-        leave.accept(new EventExitSyntaxImpl<>(current));
+        leave.accept(new EventSyntaxImpl<>(current));
         current = null;
         return this;
     }
 
     @Override
-    public ProceedSyntax<S, E, R> thenWait(Ref<S> ref, Action<R, Object> action, Consumer<EventExitSyntax<S, E, R>> leave) {
+    public StartedSyntax<S, E, R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S, E, R>> leave) {
         return null;
     }
 
     @Override
-    public ProceedSyntax<S, E, R> choose(Function<ChooseSyntax<S, E, R>, ChooseSyntax.End<S,E,R>> choose) {
+    public StartedSyntax<S, E, R> choose(Function<ChooseSyntax<S, E, R>, ChooseSyntax.End> choose) {
         current.choose(choose);
         current = null;
         return this;
@@ -103,20 +103,12 @@ public class ProcessBuilderImpl<S,E,R> implements ProcessBuilder<S,E,R>, Process
     }
 
     @Override
-    public ProceedSyntax<S, E, R> stay(Consumer<EventExitSyntax<S, E, R>> leave) {
-        leave.accept(new EventExitSyntaxImpl<>(current));
+    public StartedSyntax<S, E, R> stay(Consumer<EventSyntax<S, E, R>> leave) {
+        leave.accept(new EventSyntaxImpl<>(current));
         current = null;
         return this;
     }
 
-
-    @Override
-    public ProcessBuilder.ProceedSyntax<S,E,R> sub(Ref<S> ref, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> process) {
-        ProcessBuilderImpl<S,E,R> subProcessBuilder = createSubProcessBuilder(ref);
-        process.accept(subProcessBuilder);
-        this.current = null;
-        return this;
-    }
 
     @Override
     public void jump(Ref<S> ref) {

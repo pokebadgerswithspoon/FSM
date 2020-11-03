@@ -36,14 +36,14 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
     }
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S, E, R> thenWait(Action<R, Object> action, Consumer<ProcessBuilder.EventExitSyntax<S, E, R>> leave) {
-        leave.accept(new EventExitSyntaxImpl<>(this));
+    public ProcessBuilder.ProceedSyntax<S, E, R> thenStay(Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
+        leave.accept(new EventSyntaxImpl<>(this));
         return newBranch();
     }
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S, E, R> thenWait(Ref<S> ref, Action<R, Object> action, Consumer<ProcessBuilder.EventExitSyntax<S, E, R>> leave) {
-        return this.label(ref).thenWait(action, leave);
+    public ProcessBuilder.ProceedSyntax<S, E, R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
+        return this.label(ref).thenStay(action, leave);
     }
 
     @Override
@@ -92,8 +92,8 @@ public class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
     }
 
     @Override
-    public ProcessBuilder.ProceedSyntax<S, E, R> stay(Consumer<ProcessBuilder.EventExitSyntax<S, E, R>> leave) {
-        leave.accept(new EventExitSyntaxImpl<>(this));
+    public ProcessBuilder.ProceedSyntax<S, E, R> stay(Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
+        leave.accept(new EventSyntaxImpl<>(this));
         return newBranch();
     }
 }

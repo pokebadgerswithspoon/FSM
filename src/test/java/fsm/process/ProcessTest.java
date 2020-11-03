@@ -66,26 +66,26 @@ public class ProcessTest {
         verify(A, times(1)).execute(any(), any());
     }
 
-    /**
-     * <img src="doc-files/loopExample.png"/>
-     * <a href="doc-files/loopExample.bpmn20.xml">BPMN</a>
-     */
-    @Test
-    public void loopExample() {
-        Ref<Integer> refA = new Ref<>();
-
-        ProcessBuilder.builder()
-                .start()
-                .then(refA, A)
-                .jump(refA);
-
-        // same result, different syntax
-        ProcessBuilder.builder()
-                .start()
-                .label(refA)
-                .then(A)
-                .jump(refA);
-    }
+//    /**
+//     * <img src="doc-files/loopExample.png"/>
+//     * <a href="doc-files/loopExample.bpmn20.xml">BPMN</a>
+//     */
+//    @Test
+//    public void loopExample() {
+//        Ref<Integer> refA = new Ref<>();
+//
+//        ProcessBuilder.builder()
+//                .start()
+//                .then(refA, A)
+//                .jump(refA);
+//
+//        // same result, different syntax
+//        ProcessBuilder.builder()
+//                .start()
+//                .label(refA)
+//                .then(A)
+//                .jump(refA);
+//    }
 
     /**
      * <img src="doc-files/eventExample.png"/>
@@ -97,7 +97,7 @@ public class ProcessTest {
         Process<Integer, String, Map> process = ProcessBuilder.builder()
                 .start()
                 .stay(events -> events.on("EVENT", refB))
-                .sub(refB, b -> b.then(B).end())
+                .then(refB, B)
                 .end()
                 .build();
 
@@ -114,14 +114,43 @@ public class ProcessTest {
      */
     @Test
     public void eventsExample() {
+        Ref<Integer> cRef = new Ref<>();
+        Action<Map,Object> C = (r, p) -> {};
+
         Process<Integer, String, Map>  process = ProcessBuilder.builder()
                 .start()
-                .thenWait(A,
+                .thenStay(A,
                         leave -> leave
-                                .on("TIMEOUT", ProcessBuilder.EndSyntax::end)
+                                .on("TIMEOUT", p -> p.jump(cRef))
                                 .on("HELLO", b -> b.then(B).end())
                 )
-                .sub(new Ref<>(), ProcessBuilder.EndSyntax::end)
+                .then(cRef, C)
+                .end()
+                .build();
+
+        FsmDefinition fsmDefinition = process.getFsmDefinition();
+
+        log(process);
+        assertEquals(7, fsmDefinition.states().size());
+
+        run(process);
+
+        verify(A, times(1)).execute(any(), any());
+        verify(B, times(0)).execute(any(), any());
+        verify(C, times(1)).execute(any(), any());
+    }
+
+    @Test
+    public void eventsExample2() {
+        Action<Map, Object> HEY = (r,p) -> {};
+        Process<Integer, String, Map>  process = ProcessBuilder.builder()
+                .start()
+                .thenStay(A,
+                        leave -> leave
+                                .on("TIMEOUT", b -> b.end())
+                                .on("HELLO", b -> b.then(B).end())
+                )
+                .then(HEY)
                 .end()
                 .build();
 
@@ -152,7 +181,7 @@ public class ProcessTest {
                                 .when(ALLOW, b -> b.then(B).jump(refE))
                                 .otherwise(refE)
                 )
-                .sub(refE, ProcessBuilder.EndSyntax::end)
+                .label(refE)
                 .end()
                 .build();
 
