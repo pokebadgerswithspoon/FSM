@@ -43,17 +43,20 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
         this.current = getNodeByRef(startRef);
     }
 
-    Node.BranchNode<S, E, R> createNode(Ref<S> ref, Action<R, Object> action) {
+    Node<S, E, R, ?> createAndRegisterNode(Ref<S> ref, Action<R, Object> action) {
         if (this.nodes.containsKey(ref)) {
             throw new IllegalArgumentException("Ref is already known " + ref);
         }
-        Node.BranchNode<S, E, R> node = new Node.BranchNode<>(this, ref, action);
+        Node<S, E, R, ?> node = nodes.computeIfAbsent(ref, (r) -> doCreateNode(r, action));
         this.nodes.put(ref, node);
         return node;
     }
 
+    protected abstract Node<S,E,R,?> doCreateNode(Ref<S> ref, Action<R, Object> action);
+
+
     Node<S, E, R, ?> getNodeByRef(Ref<S> ref) {
-        return nodes.computeIfAbsent(ref, (r) -> new Node.BranchNode<S, E, R>(this, r, TAKE_NO_ACTION));
+        return nodes.computeIfAbsent(ref, (r) -> doCreateNode(r, TAKE_NO_ACTION));
     }
 
     @Override
@@ -144,6 +147,11 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
             super(stateFactory, startRef, endRef, new HashMap<>());
         }
 
+        @Override
+        protected Node<S, E, R, ?> doCreateNode(Ref<S> ref, Action<R, Object> action) {
+            return new Node.RootNode<>(this, ref, action);
+        }
+
         public BuilderSyntax<S, E, R> end() {
             getNodeByRef(endRef);
             if (this.current != null) {
@@ -159,6 +167,11 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
 
         Sub(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef, Map<Ref<S>, Node<S,E,R,?>> nodes) {
             super(stateFactory, startRef, endRef, nodes);
+        }
+
+        @Override
+        protected Node<S, E, R, ?> doCreateNode(Ref<S> ref, Action<R, Object> action) {
+            return new Node.BranchNode<>(this, ref, action);
         }
 
         @Override

@@ -34,13 +34,13 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     public SELF thenStay(Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
-        SELF node = (SELF) processBuilder.createNode(new Ref<>(), action);
+        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), action);
         leave.accept(new EventSyntaxImpl<>(node));
         return node;
     }
 
     public SELF stay(Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
-        SELF node = (SELF) processBuilder.createNode(new Ref<>(), Action.TAKE_NO_ACTION);
+        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), Action.TAKE_NO_ACTION);
         leave.accept(new EventSyntaxImpl<>(node));
         return node;
     }
@@ -54,7 +54,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
         if(!exits.isEmpty()) {
             throw new IllegalStateException("Can not apply .then() to this node");
         }
-        SELF node = (SELF) processBuilder.createNode(refTo, action);
+        SELF node = (SELF) processBuilder.createAndRegisterNode(refTo, action);
         exits.add(new Exit<S, E, R>(node.ref, (E) THEN, Guard.ALLOW));
         return node;
 
@@ -75,14 +75,14 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     public SELF choose(Function<ProcessBuilder.ChooseSyntax<S, E, R>, ProcessBuilder.ChooseSyntax.End> choose) {
-        SELF node = (SELF) processBuilder.createNode(new Ref<>(), Action.TAKE_NO_ACTION);
+        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), Action.TAKE_NO_ACTION);
         choose.apply(new ChooseSyntaxImpl<>(node));
         return node;
     }
 
     static class RootNode<S,E,R> extends Node<S,E,R, RootNode<S,E,R>> implements  ProcessBuilder.StartedSyntax<S,E,R>{
-        RootNode(ProcessBuilderImpl.Started<S,E,R> processBuilder, Ref<S> ref, Action<R,Object> onEnter) {
-            super(processBuilder, ref, onEnter);
+        RootNode(ProcessBuilderImpl.Started<S, E, R> processBuilder, Ref<S> ref, Action<R, Object> action) {
+            super(processBuilder, ref, action);
         }
         @Override
         public ProcessBuilder.BuilderSyntax<S, E, R> end() {

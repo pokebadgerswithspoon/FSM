@@ -54,14 +54,14 @@ public class ProcessTest {
     public void plainExample() {
         Process<Integer, String, Map> process = ProcessBuilder.builder()
             .start()
-            .then(A)
+            .then(new Ref<>("A"), A)
             .end()
             .build();
 
         FsmDefinition<Integer, String, Map> def = process.getFsmDefinition();
         assertEquals(3, def.states().size());
 
-        log(def);
+        log(process);
         run(process);
         verify(A, times(1)).execute(any(), any());
     }
