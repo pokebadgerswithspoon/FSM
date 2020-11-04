@@ -97,6 +97,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
 
         @Override
         public ProcessBuilder.BuilderSyntax<S, E, R> end() {
+            jump(processBuilder.endRef);
             return null;
 //        return processBuilder.end();
         }

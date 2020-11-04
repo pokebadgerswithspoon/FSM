@@ -189,6 +189,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
 
         @Override
         public FinishedSyntax end() {
+            ((Node.BranchNode) current).end();
             return null;
         }
     }
