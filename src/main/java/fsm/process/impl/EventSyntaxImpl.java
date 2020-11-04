@@ -11,7 +11,7 @@ import static fsm.Guard.ALLOW;
 
 @RequiredArgsConstructor
 class EventSyntaxImpl<S,E,R> implements ProcessBuilder.EventSyntax<S,E,R> {
-    private final Node<S,E,R> node;
+    private final Node<S,E,R,?> node;
 
     @Override
     public ProcessBuilder.EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, Ref<S> refTo) {
@@ -22,7 +22,7 @@ class EventSyntaxImpl<S,E,R> implements ProcessBuilder.EventSyntax<S,E,R> {
     @Override
     public ProcessBuilder.EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, ProcessBuilder.SubProcess process) {
         Ref<S> ref = new Ref<>();
-        ProcessBuilderImpl<S, E, R> subProcessBuilder = node.processBuilder.createSubProcessBuilder(ref);
+        ProcessBuilderImpl.Sub<S, E, R> subProcessBuilder = node.processBuilder.createSubProcessBuilder(ref);
         process.apply(subProcessBuilder);
         Exit<S, E, R> exit = new Exit<>(ref, event, guard);
         node.addExit(exit);

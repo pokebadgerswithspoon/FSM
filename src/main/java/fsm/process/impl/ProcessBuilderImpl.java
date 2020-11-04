@@ -17,7 +17,7 @@ import java.util.function.Function;
 import static fsm.Action.TAKE_NO_ACTION;
 import static java.util.Objects.requireNonNull;
 
-public class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcessSyntax<S,E,R,SELF>> implements ProcessBuilder<S, E, R>,
+abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcessSyntax<S,E,R,SELF>> implements ProcessBuilder<S, E, R>,
         ProcessBuilder.InProcessSyntax<S, E, R, SELF>,
         //        ProcessBuilder.EndSyntax<ProcessBuilder.BuilderSyntax<S,E,R>>,
         //        ProcessBuilder.StartedSyntax<S,E,R>,
@@ -28,10 +28,10 @@ public class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcessSy
     final Ref<S> endRef;
     final Ref<S> startRef;
 
-    final Map<Ref<S>, Node<S, E, R>> nodes;
-    Node<S, E, R> current;
+    final Map<Ref<S>, Node<S, E, R,?>> nodes;
+    Node<S, E, R, ?> current;
 
-    private ProcessBuilderImpl(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef, Map<Ref<S>, Node<S, E, R>> nodes) {
+    protected ProcessBuilderImpl(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef, Map<Ref<S>, Node<S, E, R, ?>> nodes) {
         requireNonNull(startRef);
         requireNonNull(endRef);
         requireNonNull(stateFactory);
@@ -43,18 +43,17 @@ public class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcessSy
         this.current = getNodeByRef(startRef);
     }
 
-    Node<S, E, R> createNode(Ref<S> ref, Action<R, Object> action) {
+    Node.BranchNode<S, E, R> createNode(Ref<S> ref, Action<R, Object> action) {
         if (this.nodes.containsKey(ref)) {
             throw new IllegalArgumentException("Ref is already known " + ref);
         }
-        Node<S, E, R> node = new Node<>(ref, action);
-        node.processBuilder = this;
+        Node.BranchNode<S, E, R> node = new Node.BranchNode<>(this, ref, action);
         this.nodes.put(ref, node);
         return node;
     }
 
-    Node<S, E, R> getNodeByRef(Ref<S> ref) {
-        return nodes.computeIfAbsent(ref, (r) -> new Node<S, E, R>(this, r, TAKE_NO_ACTION));
+    Node<S, E, R, ?> getNodeByRef(Ref<S> ref) {
+        return nodes.computeIfAbsent(ref, (r) -> new Node.BranchNode<S, E, R>(this, r, TAKE_NO_ACTION));
     }
 
     @Override
@@ -93,7 +92,7 @@ public class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcessSy
     }
 
     ProcessBuilderImpl.Sub<S,E,R> createSubProcessBuilder(Ref<S> startRef) {
-        return new ProcessBuilderImpl.Sub<S, E, R>(this.stateFactory, startRef, endRef, nodes);
+        return new ProcessBuilderImpl.Sub(this.stateFactory, startRef, endRef, nodes);
     }
 
     @Override
@@ -110,10 +109,10 @@ public class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcessSy
         nodes.entrySet()
                 .forEach(e -> {
                     Ref<S> ref = e.getKey();
-                    Node<S, E, R> node = e.getValue();
+                    Node<S,E,R,?> node = e.getValue();
                     node.exits
                             .forEach(exit -> {
-                                Node<S, E, R> nodeTo = nodes.get(exit.refTo);
+                                Node<S, E, R, ?> nodeTo = nodes.get(exit.refTo);
                                 definition.in(ref.getState()).on(exit.event).onlyIf(exit.guard).transition(nodeTo.onEnter).to(exit.refTo.getState());
                             });
                 });
@@ -158,7 +157,7 @@ public class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcessSy
     static class Sub<S, E, R> extends ProcessBuilderImpl<S, E, R, ProcessBuilder.SubProcessSyntax<S,E,R>>
             implements ProcessBuilder.SubProcessSyntax<S,E,R> {
 
-        Sub(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef, Map<Ref<S>, Node<S,E,R>> nodes) {
+        Sub(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef, Map<Ref<S>, Node<S,E,R,?>> nodes) {
             super(stateFactory, startRef, endRef, nodes);
         }
 

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 class ChooseSyntaxImpl<S,E,R> implements ChooseSyntax<S,E,R>, ChooseSyntax.End {
-    final Node<S,E,R> node;
+    final Node<S,E,R,?> node;
     final List<Exit<S,E,R>> exits = new LinkedList<>();
 
      @Override
