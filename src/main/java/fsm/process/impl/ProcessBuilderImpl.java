@@ -61,6 +61,9 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
     @Override
     public SELF label(Ref<S> ref) {
         requireNonNull(ref, "Can not label with null ref");
+        if(current == null) { // ie block after choose or stay
+            current = getNodeByRef(ref);
+        }
         current = current.label(ref);
         return (SELF) this;
     }

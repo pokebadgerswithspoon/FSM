@@ -75,9 +75,9 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     public SELF choose(Function<ProcessBuilder.ChooseSyntax<S, E, R>, ProcessBuilder.ChooseSyntax.End> choose) {
-        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), Action.TAKE_NO_ACTION);
-        choose.apply(new ChooseSyntaxImpl<>(node));
-        return node;
+//        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), Action.TAKE_NO_ACTION);
+        choose.apply(new ChooseSyntaxImpl<>(this));
+        return (SELF) this;
     }
 
     static class RootNode<S,E,R> extends Node<S,E,R, RootNode<S,E,R>> implements  ProcessBuilder.StartedSyntax<S,E,R>{
