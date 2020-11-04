@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -16,13 +15,7 @@ class ChooseSyntaxImpl<S,E,R> implements ChooseSyntax<S,E,R>, ChooseSyntax.End {
     final Node<S,E,R> node;
     final List<Exit<S,E,R>> exits = new LinkedList<>();
 
-    @Override
-    public ChooseSyntaxImpl<S, E, R> when(Guard<R, Object> guard, Ref<S> refTo) {
-        exits.add(new Exit<>(refTo, (E) Node.THEN, guard));
-        return this;
-    }
-
-    @Override
+     @Override
     public ChooseSyntax<S, E, R> when(Guard<R, Object> guard, ProcessBuilder.SubProcess<S, E, R> config) {
         Ref refTo = new Ref();
         config.apply(node.processBuilder.createSubProcessBuilder(refTo));
@@ -42,7 +35,6 @@ class ChooseSyntaxImpl<S,E,R> implements ChooseSyntax<S,E,R>, ChooseSyntax.End {
         exits.forEach(node::addExit);
         return this;
     }
-
 
 
     @Override

@@ -12,15 +12,15 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
+class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R>, ProcessBuilder.SubProcessSyntax<S, E, R> {
 
     static final Object THEN = "THEN";
-    ProcessBuilderImpl<S,E,R> processBuilder;
+    ProcessBuilderImpl<S,E,R, ?> processBuilder;
     final Ref<S> ref;
     final Action<R, Object> onEnter;
     final List<Exit<S, E, R>> exits = new LinkedList<>();
 
-    Node(ProcessBuilderImpl<S,E,R> processBuilder, Ref<S> ref, Action<R,Object> onEnter) {
+    Node(ProcessBuilderImpl<S,E,R, ?> processBuilder, Ref<S> ref, Action<R,Object> onEnter) {
         this(ref, onEnter);
         this.processBuilder = processBuilder;
     }
@@ -86,19 +86,16 @@ class Node<S,E,R> implements ProcessBuilder.StartedSyntax<S,E,R> {
         return node;
     }
 
-    private Branch<S,E,R> newBranch() {
-        return new Branch<>(new Ref<>(), new Ref<>(), processBuilder);
-    }
-
     @Override
     public ProcessBuilder.BuilderSyntax<S, E, R> end() {
         return processBuilder.end();
     }
 
-//    @Override
-//    public void jump(Ref<S> ref) {
-//        exits.add(new Exit<S,E,R>(ref, (E) THEN, null));
-//    }
+    @Override
+    public ProcessBuilder.FinishedSyntax jump(Ref<S> ref) {
+        exits.add(new Exit<>(ref, (E) THEN, null));
+        return null;
+    }
 
 
 }

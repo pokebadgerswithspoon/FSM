@@ -55,11 +55,15 @@ public interface ProcessBuilder<S,E,R> {
         SELF stay(Consumer<EventSyntax<S,E,R>> leave);
     }
 
-    interface StartedSyntax<S,E,R> extends InProcessSyntax<S,E,R, StartedSyntax<S,E,R>>, EndSyntax<BuilderSyntax<S,E,R>> {
+    interface StartedSyntax<S,E,R> extends InProcessSyntax<S,E,R, StartedSyntax<S,E,R>> {
+        BuilderSyntax<S,E,R> end();
+    }
+    interface SubProcessSyntax<S,E,R> extends InProcessSyntax<S,E,R, SubProcessSyntax<S,E,R>>, JumpSyntax<S> {
+        FinishedSyntax end();
     }
 
-    interface EndSyntax<RESULT extends FinishedSyntax> {
-        RESULT end();
+    interface EndSyntax<S, E, R> {
+        BuilderSyntax end();
     }
 
     interface EventSyntax<S,E,R> {
@@ -76,9 +80,6 @@ public interface ProcessBuilder<S,E,R> {
 
     }
 
-    interface SubProcessSyntax<S,E,R> extends InProcessSyntax<S,E,R, SubProcessSyntax<S,E,R>>, JumpSyntax<S>, EndSyntax {
-
-    }
 
     interface SubProcess<S,E,R> extends Function<SubProcessSyntax<S,E,R>, FinishedSyntax> {
 
