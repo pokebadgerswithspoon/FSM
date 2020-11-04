@@ -40,23 +40,22 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
         this.stateFactory = stateFactory;
         this.endRef = endRef;
         this.startRef = startRef;
-        this.current = getNodeByRef(startRef);
     }
 
     Node<S, E, R, ?> createAndRegisterNode(Ref<S> ref, Action<R, Object> action) {
         if (this.nodes.containsKey(ref)) {
-            throw new IllegalArgumentException("Ref is already known " + ref);
+            Node<S, E, R, ?> node = this.nodes.get(ref);
+            ActionBox.tryTake(node.onEnter, action, () -> new IllegalArgumentException("Ref is already known " + ref));
         }
-        Node<S, E, R, ?> node = nodes.computeIfAbsent(ref, (r) -> doCreateNode(r, action));
-        this.nodes.put(ref, node);
-        return node;
+        return nodes.computeIfAbsent(ref, (r) -> doCreateNode(r, action));
     }
 
     protected abstract Node<S,E,R,?> doCreateNode(Ref<S> ref, Action<R, Object> action);
 
 
+
     Node<S, E, R, ?> getNodeByRef(Ref<S> ref) {
-        return nodes.computeIfAbsent(ref, (r) -> doCreateNode(r, TAKE_NO_ACTION));
+        return nodes.computeIfAbsent(ref, (r) -> doCreateNode(r, new ActionBox<>()));
     }
 
     @Override
@@ -74,7 +73,12 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
 
     @Override
     public SELF then(Ref<S> ref, Action<R, Object> action) {
-        current = current.then(ref, action);
+        if(current == null) { // ie block after choose or stay
+            current = createAndRegisterNode(ref, action);
+        } else {
+            current = current.then(ref, action);
+        }
+
         return (SELF) this;
     }
 
@@ -141,6 +145,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
 
         public Started(StateFactory<S> stateFactory) {
             this(stateFactory, new Ref<>("START"), new Ref<>("END"));
+            this.current = getNodeByRef(startRef);
         }
 
         private Started(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef) {
@@ -167,6 +172,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
 
         Sub(StateFactory<S> stateFactory, Ref<S> startRef, Ref<S> endRef, Map<Ref<S>, Node<S,E,R,?>> nodes) {
             super(stateFactory, startRef, endRef, nodes);
+            this.current = getNodeByRef(startRef);
         }
 
         @Override
