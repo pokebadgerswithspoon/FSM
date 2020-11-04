@@ -46,13 +46,13 @@ public interface ProcessBuilder<S,E,R> {
 
         SELF then(Ref<S> ref, Action<R, Object> action);
 
+        SELF stay(Consumer<EventSyntax<S,E,R>> leave);
+
         SELF thenStay(Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 
 //        StartedSyntax<S,E,R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 
         SELF choose(Function<ChooseSyntax<S,E,R>, ChooseSyntax.End> choose);
-
-        SELF stay(Consumer<EventSyntax<S,E,R>> leave);
     }
 
     interface StartedSyntax<S,E,R> extends InProcessSyntax<S,E,R, StartedSyntax<S,E,R>> {

@@ -67,8 +67,9 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
 
     @Override
     public SELF then(Action<R, Object> action) {
-        current = current.then(action);
-        return (SELF) this;
+//        current = current.then(action);
+//        return (SELF) this;
+        return then(new Ref<>(), action);
     }
 
     @Override
@@ -182,6 +183,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
 
         @Override
         public FinishedSyntax jump(Ref<S> ref) {
+            ((Node.BranchNode) current).jump(ref);
             return null;
         }
 

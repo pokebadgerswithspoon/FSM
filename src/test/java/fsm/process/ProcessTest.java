@@ -122,17 +122,19 @@ public class ProcessTest {
                 .start()
                 .thenStay(A,
                         leave -> leave
-                                .on("TIMEOUT", cRef)
-                                .on("HELLO", b -> b.then(B).end())
+                                .on("TIMEOUT",
+                                        p -> p
+                                                .jump(cRef)
+                                )
+//                                .on("HELLO", b -> b.then(B).end())
                 )
                 .then(cRef, C)
                 .end()
                 .build();
 
-        FsmDefinition fsmDefinition = process.getFsmDefinition();
-
         log(process);
-        assertEquals(6, fsmDefinition.states().size());
+//        FsmDefinition fsmDefinition = process.getFsmDefinition();
+//        assertEquals(7, fsmDefinition.states().size());
 
         run(process);
 
@@ -155,9 +157,10 @@ public class ProcessTest {
                 .end()
                 .build();
 
-        FsmDefinition fsmDefinition = process.getFsmDefinition();
 
         log(process);
+
+        FsmDefinition fsmDefinition = process.getFsmDefinition();
         assertEquals(7, fsmDefinition.states().size());
 
         run(process);
