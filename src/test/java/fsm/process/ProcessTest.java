@@ -67,26 +67,22 @@ public class ProcessTest {
         verify(A, times(1)).execute(any(), any());
     }
 
-//    /**
-//     * <img src="doc-files/loopExample.png"/>
-//     * <a href="doc-files/loopExample.bpmn20.xml">BPMN</a>
-//     */
-//    @Test
-//    public void loopExample() {
-//        Ref<Integer> refA = new Ref<>();
-//
-//        ProcessBuilder.builder()
-//                .start()
-//                .then(refA, A)
-//                .jump(refA);
-//
-//        // same result, different syntax
-//        ProcessBuilder.builder()
-//                .start()
-//                .label(refA)
-//                .then(A)
-//                .jump(refA);
-//    }
+    /**
+     * <img src="doc-files/loopExample.png"/>
+     * <a href="doc-files/loopExample.bpmn20.xml">BPMN</a>
+     */
+    @Test
+    public void loopExample() {
+        Ref<Integer> refA = new Ref<>();
+
+        ProcessBuilder.builder()
+                .start()
+                .then(refA, A)
+                .choose(choose -> choose.when(ALLOW, p -> p.jump(refA))
+                                    .otherwise(p -> p.end())
+                )
+                .end();
+    }
 
     /**
      * <img src="doc-files/eventExample.png"/>
@@ -123,18 +119,17 @@ public class ProcessTest {
                 .thenStay(A,
                         leave -> leave
                                 .on("TIMEOUT",
-                                        p -> p
-                                                .jump(cRef)
+                                        p -> p.jump(cRef)
                                 )
-//                                .on("HELLO", b -> b.then(B).end())
+                                .on("HELLO", b -> b.then(B).end())
                 )
                 .then(cRef, C)
                 .end()
                 .build();
 
         log(process);
-//        FsmDefinition fsmDefinition = process.getFsmDefinition();
-//        assertEquals(7, fsmDefinition.states().size());
+        FsmDefinition fsmDefinition = process.getFsmDefinition();
+        assertEquals(7, fsmDefinition.states().size());
 
         run(process);
 
@@ -192,7 +187,7 @@ public class ProcessTest {
         log(process);
 
         FsmDefinition fsmDefinition = process.getFsmDefinition();
-//        assertEquals(5, fsmDefinition.states().size());
+        assertEquals(6, fsmDefinition.states().size());
 
         run(process);
         verify(B, times(1)).execute(any(), any());
