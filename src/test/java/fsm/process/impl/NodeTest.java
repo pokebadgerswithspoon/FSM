@@ -20,14 +20,13 @@ public class NodeTest {
     @Mock
     Action action;
 
-    final ProcessBuilderImpl processBuilder = new ProcessBuilderImpl(new IntStateFactory());
+    private final ProcessBuilderImpl.Started<Integer, ?, ?> processBuilder= new ProcessBuilderImpl.Started<>(new IntStateFactory());
 
     @Test
     public void testThen() {
         Node node = new Node<>(processBuilder, ref, action) ;
         Action a = (r, p) -> {};
-        Ref to = new Ref();
-        node.then(a, to);
+        node.then(a);
         assertEquals(1, node.exits.size());
     }
 
@@ -42,7 +41,7 @@ public class NodeTest {
 
     @Test
     public void end() {
-        Node node = new Node<>(processBuilder, ref, action) ;
+        Node.RootNode node = new Node.RootNode(processBuilder, ref, action) ;
         node.end().build();
     }
 }

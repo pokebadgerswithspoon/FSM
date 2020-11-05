@@ -13,6 +13,6 @@ public class ProcessBuilderInitImpl<S,E,R> implements ProcessBuilder.StartSyntax
 
     @Override
     public ProcessBuilder.StartedSyntax<S,E,R> start() {
-        return new ProcessBuilderImpl<>(stateFactory);
+        return new ProcessBuilderImpl.Started<>(stateFactory);
     }
 }

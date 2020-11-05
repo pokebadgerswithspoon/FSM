@@ -8,30 +8,26 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-class ChooseSyntaxImpl<S,E,R> implements ChooseSyntax<S,E,R>, ChooseSyntax.End<S,E,R> {
-    final Node<S,E,R> node;
+class ChooseSyntaxImpl<S,E,R> implements ChooseSyntax<S,E,R>, ChooseSyntax.End {
+    final Node<S,E,R,?> node;
     final List<Exit<S,E,R>> exits = new LinkedList<>();
 
-    @Override
-    public ChooseSyntaxImpl<S, E, R> when(Guard<R, Object> guard, Ref<S> refTo) {
-        exits.add(new Exit<>(refTo, (E) Node.THEN, guard));
-        return this;
-    }
-    public ChooseSyntaxImpl<S,E,R> when(Guard<R,Object> guard, Consumer<ProcessBuilder.StartedSyntax<S,E,R>> config) {
+     @Override
+    public ChooseSyntax<S, E, R> when(Guard<R, Object> guard, ProcessBuilder.SubProcess<S, E, R> config) {
         Ref refTo = new Ref();
-        config.accept(node.processBuilder.createSubProcessBuilder(refTo));
+        config.apply(node.processBuilder.createSubProcessBuilder(refTo));
         exits.add(new Exit<>(refTo, Node.THEN, guard));
         return end();
     }
-    public ChooseSyntaxImpl<S,E,R> otherwise(Consumer<ProcessBuilder.StartedSyntax<S,E,R>> config) {
-        Guard<R, Object> otherwise = otherwiseGuard();
+
+    @Override
+    public End otherwise(ProcessBuilder.SubProcess<S, E, R> config) {
         Ref refTo = new Ref();
-        config.accept(node.processBuilder.createSubProcessBuilder(refTo));
-        exits.add(new Exit<>(refTo, Node.THEN, otherwise));
+        config.apply(node.processBuilder.createSubProcessBuilder(refTo));
+        exits.add(new Exit<>(refTo, Node.THEN, otherwiseGuard()));
         return end();
     }
 
@@ -42,7 +38,7 @@ class ChooseSyntaxImpl<S,E,R> implements ChooseSyntax<S,E,R>, ChooseSyntax.End<S
 
 
     @Override
-    public End<S,E,R> otherwise(Ref<S> refTo) {
+    public End otherwise(Ref<S> refTo) {
         Guard<R, Object> guard = otherwiseGuard();
         exits.add(new Exit<>(refTo, (E) Node.THEN, guard));
         return this;

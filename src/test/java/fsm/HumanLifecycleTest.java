@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- *
  * @author lauri
  */
 public class HumanLifecycleTest {
@@ -51,15 +50,22 @@ public class HumanLifecycleTest {
             body.ageTicks++;
             body.food--;
             body.tiredness++;
-            log("body.food  = " +body.food);
+            log("body.food  = " + body.food);
         }).keepState();
-        human.on(TICK).onlyIf((body, payload) ->  body.food < 0).transition().to(DEAD);
+        human.on(TICK).onlyIf((body, payload) -> body.food < 0).transition().to(DEAD);
 
         human.in(INIT).on(BIRTH).transition().to(AWAKE);
         human.in(AWAKE).on(TICK).transition().to(ASLEEP);
-        human.in(AWAKE).on(EAT).transition((body, p) -> {
-            body.food++;
-        }).keepState();
+        human.in(AWAKE)
+                .on(EAT, String.class)
+                .onlyIf((body, payload) -> !"shit".equalsIgnoreCase(payload))
+                .transition((body, p) -> body.food++)
+                .keepState();
+        human.in(AWAKE)
+                .on(EAT, String.class)
+                .onlyIf((body, payload) -> "shit".equalsIgnoreCase(payload))
+                .transition((body, p) -> body.food = -1)
+                .to(DEAD);
         human.in(ASLEEP).on(WAKE).transition().to(AWAKE);
 
         human.in(AWAKE).on(TICK).transition().to(ASLEEP);
@@ -69,11 +75,14 @@ public class HumanLifecycleTest {
 
         masha.handle(BIRTH);
         assertEquals(AWAKE, masha.getState());
-        masha.handle(TICK);
+        masha.handle(EAT, "shit");
+        assertEquals(DEAD, masha.getState());
 
         masha.handle(BIRTH);
+        masha.handle(WAKE);
+        masha.handle(TICK);
 
-        assertTrue(masha.getRuntime().ageTicks > 0);
+//        assertTrue(masha.getRuntime().ageTicks > 0);
 
         for (int i = 0; i < 15; i++) {
             masha.handle(TICK);

@@ -38,7 +38,7 @@ public class ProcessUtil {
             fsm.handle(event);
             log.info("State {}, after [{}] is {}", state, event, fsm.getState());
             if (i++ > 10) {
-                throw new IllegalStateException("Too much steps");
+                throw new IllegalStateException("Too many steps, did we stuck?");
             }
             e = whatEvent.apply(fsm.getState());
         }

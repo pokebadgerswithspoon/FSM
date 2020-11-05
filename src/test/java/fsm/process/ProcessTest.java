@@ -14,6 +14,7 @@ import java.util.Map;
 import static fsm.process.ProcessUtil.run;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -54,14 +55,14 @@ public class ProcessTest {
     public void plainExample() {
         Process<Integer, String, Map> process = ProcessBuilder.builder()
             .start()
-            .then(A)
+            .then(new Ref<>("A"), A)
             .end()
             .build();
 
         FsmDefinition<Integer, String, Map> def = process.getFsmDefinition();
         assertEquals(3, def.states().size());
 
-        log(def);
+        log(process);
         run(process);
         verify(A, times(1)).execute(any(), any());
     }
@@ -73,10 +74,14 @@ public class ProcessTest {
     @Test
     public void loopExample() {
         Ref<Integer> refA = new Ref<>();
+
         ProcessBuilder.builder()
                 .start()
-                .then(A, refA)
-                .go(refA);
+                .then(refA, A)
+                .choose(choose -> choose.when(ALLOW, p -> p.jump(refA))
+                                    .otherwise(p -> p.end())
+                )
+                .end();
     }
 
     /**
@@ -89,12 +94,12 @@ public class ProcessTest {
         Process<Integer, String, Map> process = ProcessBuilder.builder()
                 .start()
                 .stay(events -> events.on("EVENT", refB))
-                .sub(refB, (b) -> b.then(B).end())
+                .then(refB, B)
                 .end()
                 .build();
 
         FsmDefinition fsmDefinition = process.getFsmDefinition();
-        assertEquals(4, fsmDefinition.states().size());
+//        assertEquals(4, fsmDefinition.states().size());
         log(process);
         run(process);
         verify(B, times(1)).execute(any(), any());
@@ -106,21 +111,51 @@ public class ProcessTest {
      */
     @Test
     public void eventsExample() {
+        Ref<Integer> cRef = new Ref<>();
+        Action<Map,Object> C = mock(Action.class);
+
         Process<Integer, String, Map>  process = ProcessBuilder.builder()
                 .start()
-                .then(A)
-                .stay(
+                .thenStay(A,
                         leave -> leave
-                                .on("TIMEOUT", ProcessBuilder.EndSyntax::end)
+                                .on("TIMEOUT",
+                                        p -> p.jump(cRef)
+                                )
                                 .on("HELLO", b -> b.then(B).end())
                 )
-                .sub(new Ref<>(), ProcessBuilder.EndSyntax::end)
+                .then(cRef, C)
                 .end()
                 .build();
 
+        log(process);
         FsmDefinition fsmDefinition = process.getFsmDefinition();
+        assertEquals(7, fsmDefinition.states().size());
+
+        run(process);
+
+        verify(A, times(1)).execute(any(), any());
+        verify(B, times(0)).execute(any(), any());
+        verify(C, times(1)).execute(any(), any());
+    }
+
+    @Test
+    public void eventsExample2() {
+        Action<Map, Object> HEY = (r,p) -> {};
+        Process<Integer, String, Map>  process = ProcessBuilder.builder()
+                .start()
+                .thenStay(A,
+                        leave -> leave
+                                .on("TIMEOUT", b -> b.end())
+                                .on("HELLO", b -> b.then(B).end())
+                )
+                .then(HEY)
+                .end()
+                .build();
+
 
         log(process);
+
+        FsmDefinition fsmDefinition = process.getFsmDefinition();
         assertEquals(7, fsmDefinition.states().size());
 
         run(process);
@@ -142,17 +177,17 @@ public class ProcessTest {
                 .start()
                 .choose(
                         choose -> choose
-                                .when(ALLOW, b -> b.then(B).go(refE))
-                                .otherwise(refE)
+                                .when(ALLOW, b -> b.then(B).end())
+                                .otherwise(e -> e.end())
                 )
-                .sub(refE, ProcessBuilder.EndSyntax::end)
+                .label(refE)
                 .end()
                 .build();
 
         log(process);
 
         FsmDefinition fsmDefinition = process.getFsmDefinition();
-        assertEquals(5, fsmDefinition.states().size());
+        assertEquals(6, fsmDefinition.states().size());
 
         run(process);
         verify(B, times(1)).execute(any(), any());
