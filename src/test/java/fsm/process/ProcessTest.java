@@ -28,7 +28,6 @@ public class ProcessTest {
     Action<Map, Object> A;
     @Mock
     Action<Map, Object> B;
-    Action logE = (r, p) -> log.info("Event");
 
     /**
      * <img src="doc-files/emptyExample.png"/>
@@ -89,7 +88,7 @@ public class ProcessTest {
             run(process);
             fail("Loop example is endless and should be aborted by a runner");
         } catch (IllegalStateException ex) {
-
+            // 👍 good!👍
         }
     }
 
