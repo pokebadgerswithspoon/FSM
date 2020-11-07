@@ -69,14 +69,14 @@ public interface ProcessBuilder<S,E,R> {
     interface EventSyntax<S,E,R> {
 
         default EventSyntax<S,E,R> on(E event, Ref<S> refTo) {
-            return this.on(event, null, refTo);
+            return this.on(event, Guard.allow(), refTo);
         }
         EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, Ref<S> refTo);
 
         default EventSyntax<S,E,R> on(E event, SubProcess<S,E,R> process) {
-            return this.on(event, null, process);
+            return this.on(event, Guard.allow(), process);
         }
-        EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, SubProcess process);
+        EventSyntax<S, E, R> on(E event, Guard<R, Object> guard, SubProcess<S,E,R> process);
 
     }
 

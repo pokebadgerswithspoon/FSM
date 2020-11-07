@@ -22,6 +22,10 @@ public interface Guard<R, P> {
 
     Guard ALLOW = (runtime, payload) -> true;
 
+    static <R,P> Guard<R,P> allow() {
+        return (r, p) -> true;
+    }
+
     static <R,P> Guard<R, P> not(Guard<R,P> guard) {
         return (R runtime, P payload) -> !guard.allow(runtime, payload);
     }

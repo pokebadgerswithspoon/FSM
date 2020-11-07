@@ -30,7 +30,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     public SELF label(Ref<S> ref) {
-        return (SELF) then(ref, Action.TAKE_NO_ACTION);
+        return (SELF) then(ref, Action.NOOP);
     }
 
     public SELF thenStay(Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
@@ -40,7 +40,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     public SELF stay(Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
-        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), Action.TAKE_NO_ACTION);
+        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), Action.NOOP);
         leave.accept(new EventSyntaxImpl<>(node));
         return node;
     }
@@ -55,7 +55,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
             throw new IllegalStateException("Can not apply .then() to this node");
         }
         SELF node = (SELF) processBuilder.createAndRegisterNode(refTo, action);
-        exits.add(new Exit<S, E, R>(node.ref, (E) THEN, Guard.ALLOW));
+        exits.add(new Exit<S, E, R>(node.ref, (E) THEN, Guard.allow()));
         return node;
 
     }
@@ -75,7 +75,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     public SELF choose(Function<ProcessBuilder.ChooseSyntax<S, E, R>, ProcessBuilder.ChooseSyntax.End> choose) {
-//        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), Action.TAKE_NO_ACTION);
+//        SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), Action.NOOP);
         choose.apply(new ChooseSyntaxImpl<>(this));
         return (SELF) this;
     }
