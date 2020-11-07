@@ -88,7 +88,7 @@ public class ProcessTest {
             run(process);
             fail("Loop example is endless and should be aborted by a runner");
         } catch (IllegalStateException ex) {
-            // 👍 good!👍
+            // 👍 good!👍.
         }
     }
 
@@ -135,7 +135,7 @@ public class ProcessTest {
                                 .on("TIMEOUT",
                                         p -> p.then(B).jump(cRef)
                                 )
-                                .on("SOMETHING UNHANDLED", b -> b.then(D).end())
+                                .on("SOMETHING ELSE", b -> b.then(D).end())
                 )
                 .then(cRef, C)
                 .end()
