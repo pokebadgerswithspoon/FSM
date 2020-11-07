@@ -164,7 +164,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
         public BuilderSyntax<S, E, R> end() {
             getNodeByRef(endRef);
             if (this.current != null) {
-                this.current.addExit(new Exit<>(endRef, (E) Node.THEN, Guard.ALLOW));
+                this.current.addExit(new Exit<>(endRef, (E) Node.THEN, Guard.allow()));
             }
             return this::build;
         }

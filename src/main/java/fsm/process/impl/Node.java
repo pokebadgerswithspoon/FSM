@@ -55,7 +55,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
             throw new IllegalStateException("Can not apply .then() to this node");
         }
         SELF node = (SELF) processBuilder.createAndRegisterNode(refTo, action);
-        exits.add(new Exit<S, E, R>(node.ref, (E) THEN, Guard.ALLOW));
+        exits.add(new Exit<S, E, R>(node.ref, (E) THEN, Guard.allow()));
         return node;
 
     }
