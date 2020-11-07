@@ -27,7 +27,6 @@ public class ProcessUtil {
     }
 
     static void runFsm(FsmDefinition def, final Fsm fsm) {
-        log.info("FSM is {}", fsm);
 
         Function<Object, Optional<String>> whatEvent = (state) -> Stream.of("THEN", "TIMEOUT", "HELLO", "EVENT").filter((e) -> def.hasHandler(state, e)).findFirst();
 

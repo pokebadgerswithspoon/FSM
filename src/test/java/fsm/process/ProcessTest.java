@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static fsm.process.ProcessUtil.run;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -27,7 +28,6 @@ public class ProcessTest {
     Action<Map, Object> A;
     @Mock
     Action<Map, Object> B;
-    Action logE = (r, p) -> log.info("Event");
 
     /**
      * <img src="doc-files/emptyExample.png"/>
@@ -42,7 +42,7 @@ public class ProcessTest {
 
         FsmDefinition<Integer, String,Map> def = process.getFsmDefinition();
         log(process);
-        assertEquals(2, def.states().size());
+        assertEquals("FSM behind empty process has two states: START and FINISH",2, def.states().size());
 
         run(process);
     }
@@ -75,13 +75,21 @@ public class ProcessTest {
     public void loopExample() {
         Ref<Integer> refA = new Ref<>();
 
-        ProcessBuilder.builder()
+        Process<?,?,?> process = ProcessBuilder.builder()
                 .start()
                 .then(refA, A)
                 .choose(choose -> choose.when(ALLOW, p -> p.jump(refA))
-                                    .otherwise(p -> p.end())
+                        .otherwise(p -> p.end())
                 )
-                .end();
+                .end()
+                .build();
+
+        try {
+            run(process);
+            fail("Loop example is endless and should be aborted by a runner");
+        } catch (IllegalStateException ex) {
+            // 👍 good!👍.
+        }
     }
 
     /**
@@ -90,19 +98,24 @@ public class ProcessTest {
      */
     @Test
     public void eventExample() {
+        Ref<Integer> refA = new Ref<>("Ref A");
         Ref<Integer> refB = new Ref<>("Ref B");
-        Process<Integer, String, Map> process = ProcessBuilder.builder()
+        Process<?,?,?> process = ProcessBuilder.builder()
                 .start()
                 .stay(events -> events.on("EVENT", refB))
+                .then(refA, A)
                 .then(refB, B)
                 .end()
                 .build();
 
         FsmDefinition fsmDefinition = process.getFsmDefinition();
-//        assertEquals(4, fsmDefinition.states().size());
+        assertEquals(4, fsmDefinition.states().size());
+
         log(process);
         run(process);
+
         verify(B, times(1)).execute(any(), any());
+        verify(A, times(0)).execute(any(), any());
     }
 
     /**
@@ -113,35 +126,37 @@ public class ProcessTest {
     public void eventsExample() {
         Ref<Integer> cRef = new Ref<>();
         Action<Map,Object> C = mock(Action.class);
+        Action<Map,Object> D = mock(Action.class);
 
         Process<Integer, String, Map>  process = ProcessBuilder.builder()
                 .start()
                 .thenStay(A,
                         leave -> leave
                                 .on("TIMEOUT",
-                                        p -> p.jump(cRef)
+                                        p -> p.then(B).jump(cRef)
                                 )
-                                .on("HELLO", b -> b.then(B).end())
+                                .on("SOMETHING ELSE", b -> b.then(D).end())
                 )
                 .then(cRef, C)
                 .end()
                 .build();
 
-        log(process);
-        FsmDefinition fsmDefinition = process.getFsmDefinition();
-        assertEquals(7, fsmDefinition.states().size());
-
         run(process);
 
         verify(A, times(1)).execute(any(), any());
-        verify(B, times(0)).execute(any(), any());
+        verify(B, times(1)).execute(any(), any());
         verify(C, times(1)).execute(any(), any());
+        verify(D, times(0)).execute(any(), any());
     }
 
+    /**
+     * <img src="doc-files/eventsExample2.png"/>
+     * <a href="doc-files/eventsExample2.bpmn20.xml">BPMN</a>
+     */
     @Test
     public void eventsExample2() {
         Action<Map, Object> HEY = (r,p) -> {};
-        Process<Integer, String, Map>  process = ProcessBuilder.builder()
+        Process<?, ?, ?>  process = ProcessBuilder.builder()
                 .start()
                 .thenStay(A,
                         leave -> leave
@@ -173,7 +188,7 @@ public class ProcessTest {
     public void chooseExample() {
 
         Ref<Integer> refE = new Ref<>();
-        Process<Integer, String, Map> process = ProcessBuilder.builder()
+        Process<?, ?, ?> process = ProcessBuilder.builder()
                 .start()
                 .choose(
                         choose -> choose
@@ -184,8 +199,6 @@ public class ProcessTest {
                 .end()
                 .build();
 
-        log(process);
-
         FsmDefinition fsmDefinition = process.getFsmDefinition();
         assertEquals(6, fsmDefinition.states().size());
 
@@ -193,13 +206,7 @@ public class ProcessTest {
         verify(B, times(1)).execute(any(), any());
     }
 
-
-    private void log(FsmDefinition<Integer, String, Map> def) {
-        log.info("State is:{}", def.define(null, 0));
-    }
-
-    private void log(Process<Integer, String,Map> process) {
-        log(process.getFsmDefinition());
+    private void log(Process<?, ?, ?> process) {
         log.info("start: {}, end: {}", process.getStart(), process.getEnd());
     }
 }
