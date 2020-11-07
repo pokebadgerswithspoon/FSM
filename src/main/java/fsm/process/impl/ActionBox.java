@@ -5,7 +5,7 @@ import fsm.Action;
 import java.util.function.Supplier;
 
 final class ActionBox<R, P> implements Action<R, P> {
-    private Action<R, P> boxed = TAKE_NO_ACTION;
+    private Action<R, P> boxed = NOOP;
     private boolean taken = false;
 
     public static <R, P> void tryTake(Action<R, P> onEnter, Action<R, P> action, Supplier<RuntimeException> exceptionSupplier) {

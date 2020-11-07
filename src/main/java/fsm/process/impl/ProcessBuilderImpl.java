@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static fsm.Action.TAKE_NO_ACTION;
 import static java.util.Objects.requireNonNull;
 
 abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcessSyntax<S,E,R,SELF>> implements ProcessBuilder<S, E, R>,

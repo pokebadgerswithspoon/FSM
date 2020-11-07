@@ -94,7 +94,7 @@ public class StateHandler<S, E, R> {
         final S stateTo;
 
         EventHandler(Action<R, P> action, Guard<R, P> guard, S stateTo) {
-            this.action = action == null ? Action.TAKE_NO_ACTION : action;
+            this.action = action == null ? Action.NOOP : action;
             this.guard = guard == null ? Guard.ALLOW : guard;
             this.stateTo = stateTo;
         }
@@ -104,7 +104,7 @@ public class StateHandler<S, E, R> {
             return new StringBuilder()
                     .append("->")
                     .append(guard == Guard.ALLOW ? "": "?")
-                    .append(action == Action.TAKE_NO_ACTION ? "": "a")
+                    .append(action == Action.NOOP ? "": "a")
                     .append(stateTo)
                     .toString();
         }

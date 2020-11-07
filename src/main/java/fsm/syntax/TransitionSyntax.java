@@ -40,7 +40,7 @@ public interface TransitionSyntax<S, E, R, P> {
 
         @Override
         public StateSyntax<S, E, R> transition() {
-            return transition(Action.TAKE_NO_ACTION);
+            return transition(Action.NOOP);
         }
 
         @Override

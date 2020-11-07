@@ -24,7 +24,20 @@ public interface Action<R, P> {
      */
     void execute(R runtime, P payload);
 
-    Action TAKE_NO_ACTION = (runtime, payload) -> {};
+    /**
+     * An action that does nothing
+     */
+    Action NOOP = (runtime, payload) -> {};
+
+    /**
+     * Take no action
+     * @param <R> runtime
+     * @param <P> payload
+     * @return an action that does nothing
+     */
+    static <R, P> Action<R, P> noop() {
+        return (r, p) -> {};
+    }
 
     static <R, P> Action<R, P> combine(Action<R, P>... actions) {
         return (R runtime, P payload) -> {
