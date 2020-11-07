@@ -85,4 +85,15 @@
         <developerConnection>scm:git:git@github.com:pokebadgerswithspoon/FSM</developerConnection>
         <tag>HEAD</tag>
     </scm>
+
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub pokebadgerswithspoon/FSM Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/pokebadgerswithspoon/FSM</url>
+        </repository>
+    </distributionManagement>
+
+
 </project>
