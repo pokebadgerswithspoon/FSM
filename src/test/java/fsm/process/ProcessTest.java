@@ -159,22 +159,27 @@ public class ProcessTest {
     @Test
     public void labelExample() {
 
-        Ref<Integer> ref = new Ref<>();
+        Ref<Integer> refA = new Ref<>();
+        Ref<Integer> refB = new Ref<>();
         Process<Integer, String, Map> process = ProcessBuilder.builder()
             .start()
-            .thenStay(A,
+            .thenStay(Action.noop(),
                 leave -> leave
                     .on("TIMEOUT", Guard.allow(),
-                        p -> p.jump(ref)
+                        p -> p.jump(refB)
                     )
             )
-            .label(ref)
+            .label(refA)
+            .then(A)
+            .label(refB)
+            .then(B)
             .end()
             .build();
 
+        log(process);
         run(process);
 
-        verify(A, times(1)).execute(any(), any());
+        verify(A, times(0)).execute(any(), any());
         verify(B, times(1)).execute(any(), any());
     }
 

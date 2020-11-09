@@ -62,8 +62,9 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
         requireNonNull(ref, "Can not label with null ref");
         if(current == null) { // ie block after choose or stay
             current = getNodeByRef(ref);
+        } else {
+            current = current.label(ref);
         }
-        current = current.label(ref);
         return (SELF) this;
     }
 

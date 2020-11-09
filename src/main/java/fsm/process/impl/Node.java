@@ -45,11 +45,6 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
         return node;
     }
 
-//    @Override
-//    public ProcessBuilder.ProceedSyntax<S, E, R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
-//        return this.label(ref).thenStay(action, leave);
-//    }
-
     public SELF then(Ref<S> refTo, Action<R, Object> action) {
         if(!exits.isEmpty()) {
             throw new IllegalStateException("Can not apply .then() to this node");
@@ -99,8 +94,8 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
         public ProcessBuilder.BuilderSyntax<S, E, R> end() {
             jump(processBuilder.endRef);
             return null;
-//        return processBuilder.end();
         }
+
         @Override
         public ProcessBuilder.FinishedSyntax jump(Ref<S> ref) {
             exits.add(new Exit<>(ref, (E) THEN, null));
