@@ -153,6 +153,32 @@ public class ProcessTest {
     }
 
     /**
+     * <img src="doc-files/eventsExample.png"/>
+     * <a href="doc-files/eventsExample.bpmn20.xml">BPMN</a>
+     */
+    @Test
+    public void labelExample() {
+
+        Ref<Integer> ref = new Ref<>();
+        Process<Integer, String, Map> process = ProcessBuilder.builder()
+            .start()
+            .thenStay(A,
+                leave -> leave
+                    .on("TIMEOUT", Guard.allow(),
+                        p -> p.jump(ref)
+                    )
+            )
+            .label(ref)
+            .end()
+            .build();
+
+        run(process);
+
+        verify(A, times(1)).execute(any(), any());
+        verify(B, times(1)).execute(any(), any());
+    }
+
+    /**
      * <img src="doc-files/eventsExample2.png"/>
      * <a href="doc-files/eventsExample2.bpmn20.xml">BPMN</a>
      */
