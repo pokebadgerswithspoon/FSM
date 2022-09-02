@@ -29,7 +29,7 @@ public interface StateSyntax<S, E, R> {
     class Impl<S, E, R, P> implements StateSyntax<S, E, R> {
 
         private final  TransitionSyntax.Impl<S,E,R,P> transition;
-        private final Action<R, P> action;
+        private final Action<R, P, S> action;
 
         @Override
         public void to(S state) {

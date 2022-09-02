@@ -17,7 +17,7 @@ import static org.junit.Assert.assertNotNull;
 public class SubProcessTest {
 
     @Mock
-    private Action<Map, Object> doSomething;
+    private Action<Map, Object, Integer> doSomething;
 
     @Test
     public void testSimpleProcess() {
@@ -29,21 +29,6 @@ public class SubProcessTest {
         run(simpleProcess);
     }
 
-//    @Test
-//    public void testSubProcess() {
-//        Process simpleProcess = createSimpleProcess();
-//        ProcessBuilder.builder()
-//            .start()
-//            .then(simpleProcess)
-//            .then(doSomething)
-//            .end();
-//        FsmDefinition def = simpleProcess.getFsmDefinition();
-//        assertEquals(3, def.states().size());
-//
-//        run(simpleProcess);
-//
-//        verify(doSomething, times(2)).execute(any(), any());
-//    }
 
     Process createSimpleProcess() {
         return ProcessBuilder.builder()

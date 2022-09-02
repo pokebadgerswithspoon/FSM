@@ -18,10 +18,10 @@ import static org.junit.Assert.assertEquals;
  */
 public class FsmTest {
 
-    static final Action<Runtime, Integer> increment = (runtime, e) -> {
+    static final Action<Runtime, Integer, String> increment = (runtime, e) -> {
         runtime.knock++;
     };
-    static final Action<Runtime, Integer> log = (runtime, e) -> {
+    static final Action<Runtime, Integer, String> log = (runtime, e) -> {
         System.out.println("Knock "+ runtime.knock);
         System.out.println("Payload: "+ e);
     };
@@ -31,7 +31,7 @@ public class FsmTest {
 
         FsmDefinition<String, String, Runtime> rules = new FsmDefinition<>();
 
-        Action<Runtime, Integer> action = Action.combine(increment, log);
+        Action<Runtime, Integer, String> action = Action.combine(increment, log);
 
         rules.on("KNOCK", Integer.class).transition(action).keepState();
         rules.in("INIT").on("KNOCK", Integer.class).transition(action).keepState();

@@ -25,9 +25,9 @@ public class ProcessTest {
 
     private static final Guard<Map, Object> ALLOW = (r, p) -> true;
     @Mock
-    Action<Map, Object> A;
+    Action<Map, Object, Integer> A;
     @Mock
-    Action<Map, Object> B;
+    Action<Map, Object, Integer> B;
 
     /**
      * <img src="doc-files/emptyExample.png"/>
@@ -125,8 +125,8 @@ public class ProcessTest {
     @Test
     public void eventsExample() {
         Ref<Integer> cRef = new Ref<>();
-        Action<Map, Object> C = mock(Action.class);
-        Action<Map, Object> D = mock(Action.class);
+        Action<Map, Object, Integer> C = mock(Action.class);
+        Action<Map, Object, Integer> D = mock(Action.class);
 
         Process<Integer, String, Map> process = ProcessBuilder.builder()
             .start()
@@ -158,7 +158,7 @@ public class ProcessTest {
      */
     @Test
     public void eventsExample2() {
-        Action<Map, Object> HEY = (r, p) -> {
+        Action<Map, Object, Integer> HEY = (r, p) -> {
         };
         Process<?, ?, ?> process = ProcessBuilder.builder()
             .start()
