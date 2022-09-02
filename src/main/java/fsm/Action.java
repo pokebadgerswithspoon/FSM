@@ -13,16 +13,16 @@ package fsm;
  *
  * @author lauri
  */
-public interface Action<R, P> {
+public interface Action<R, P, S> {
 
     /**
      * Action taken on transition. Executed even if FSM definition asked to keep
      * it's state
      *
      * @param runtime can be null
-     * @param payload of event that triggered the transition
+     * @param transition of event that triggered the transition
      */
-    void execute(R runtime, P payload);
+    void execute(R runtime, Transition<S, P, ?> transition);
 
     /**
      * An action that does nothing
@@ -35,14 +35,14 @@ public interface Action<R, P> {
      * @param <P> payload
      * @return an action that does nothing
      */
-    static <R, P> Action<R, P> noop() {
+    static <R, P, S> Action<R, P, S> noop() {
         return (r, p) -> {};
     }
 
-    static <R, P> Action<R, P> combine(Action<R, P>... actions) {
-        return (R runtime, P payload) -> {
-            for (Action<R, P> action : actions) {
-                action.execute(runtime, payload);
+    static <R, P, S> Action<R, P, S> combine(Action<R, P, S>... actions) {
+        return (runtime, transition) -> {
+            for (Action<R, P, S> action : actions) {
+                action.execute(runtime, transition);
             }
         };
     }

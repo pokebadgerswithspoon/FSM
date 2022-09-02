@@ -34,7 +34,7 @@ public class StateHandler<S, E, R> {
         }
     }
 
-    public <P> void register(E event, Action<R,P> action, Guard<R,P> guard, S stateTo) {
+    public <P> void register(E event, Action<R,P,S> action, Guard<R,P> guard, S stateTo) {
         addHandler.accept(
                 handlers(event),
                 new EventHandler<>(action, guard, stateTo)
@@ -66,7 +66,7 @@ public class StateHandler<S, E, R> {
             if (g.allow(runtime, event.payload)) {
                 Action a = handler.action;
                 stateTo = handler.stateTo;
-                a.execute(runtime, event.payload);
+                a.execute(runtime, new Transition.Impl(state, stateTo, event.type, event.payload));
                 break;
             }
         }
@@ -89,11 +89,11 @@ public class StateHandler<S, E, R> {
 
     private static class EventHandler<S, E, R, P> {
 
-        final Action<R, P> action;
+        final Action<R, P, S> action;
         final Guard<R, P> guard;
         final S stateTo;
 
-        EventHandler(Action<R, P> action, Guard<R, P> guard, S stateTo) {
+        EventHandler(Action<R, P, S> action, Guard<R, P> guard, S stateTo) {
             this.action = action == null ? Action.NOOP : action;
             this.guard = guard == null ? Guard.ALLOW : guard;
             this.stateTo = stateTo;

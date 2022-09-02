@@ -17,15 +17,15 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     static final Object THEN = "THEN";
     ProcessBuilderImpl<S,E,R, ?> processBuilder;
     final Ref<S> ref;
-    final Action<R, Object> onEnter;
+    final Action<R, Object, S> onEnter;
     final List<Exit<S, E, R>> exits = new LinkedList<>();
 
-    Node(ProcessBuilderImpl<S,E,R, ?> processBuilder, Ref<S> ref, Action<R,Object> onEnter) {
+    Node(ProcessBuilderImpl<S,E,R, ?> processBuilder, Ref<S> ref, Action<R,Object, S> onEnter) {
         this(ref, onEnter);
         this.processBuilder = processBuilder;
     }
 
-    public SELF then(Action<R, Object> action) {
+    public SELF then(Action<R, Object, S> action) {
         return then(new Ref<>(), action);
     }
 
@@ -33,7 +33,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
         return (SELF) then(ref, Action.NOOP);
     }
 
-    public SELF thenStay(Action<R, Object> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
+    public SELF thenStay(Action<R, Object, S> action, Consumer<ProcessBuilder.EventSyntax<S, E, R>> leave) {
         SELF node = (SELF) processBuilder.createAndRegisterNode(new Ref<>(), action);
         leave.accept(new EventSyntaxImpl<>(node));
         return node;
@@ -50,7 +50,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
 //        return this.label(ref).thenStay(action, leave);
 //    }
 
-    public SELF then(Ref<S> refTo, Action<R, Object> action) {
+    public SELF then(Ref<S> refTo, Action<R, Object, S> action) {
         if(!exits.isEmpty()) {
             throw new IllegalStateException("Can not apply .then() to this node");
         }
@@ -61,7 +61,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     @Deprecated
-    public SELF then(Action<R, Object> action, Ref<S> refTo) {
+    public SELF then(Action<R, Object, S> action, Ref<S> refTo) {
         return this.then(refTo, action);
     }
 
@@ -81,7 +81,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     static class RootNode<S,E,R> extends Node<S,E,R, RootNode<S,E,R>> implements  ProcessBuilder.StartedSyntax<S,E,R>{
-        RootNode(ProcessBuilderImpl.Started<S, E, R> processBuilder, Ref<S> ref, Action<R, Object> action) {
+        RootNode(ProcessBuilderImpl.Started<S, E, R> processBuilder, Ref<S> ref, Action<R, Object, S> action) {
             super(processBuilder, ref, action);
         }
         @Override
@@ -91,7 +91,7 @@ class Node<S,E,R, SELF extends Node<S,E,R, SELF>> {
     }
 
     static class BranchNode<S,E,R> extends Node<S,E,R, BranchNode<S,E,R>> implements ProcessBuilder.SubProcessSyntax<S,E,R>{
-        BranchNode(ProcessBuilderImpl<S,E,R, ?> processBuilder, Ref<S> ref, Action<R,Object> onEnter) {
+        BranchNode(ProcessBuilderImpl<S,E,R, ?> processBuilder, Ref<S> ref, Action<R,Object, S> onEnter) {
             super(processBuilder, ref, onEnter);
         }
 

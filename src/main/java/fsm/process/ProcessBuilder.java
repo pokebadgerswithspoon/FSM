@@ -42,13 +42,13 @@ public interface ProcessBuilder<S,E,R> {
 
         SELF label(Ref<S> ref);
 
-        SELF then(Action<R, Object> action);
+        SELF then(Action<R, Object, S> action);
 
-        SELF then(Ref<S> ref, Action<R, Object> action);
+        SELF then(Ref<S> ref, Action<R, Object, S> action);
 
         SELF stay(Consumer<EventSyntax<S,E,R>> leave);
 
-        SELF thenStay(Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
+        SELF thenStay(Action<R, Object, S> action, Consumer<EventSyntax<S,E,R>> leave);
 
 //        StartedSyntax<S,E,R> thenStay(Ref<S> ref, Action<R, Object> action, Consumer<EventSyntax<S,E,R>> leave);
 

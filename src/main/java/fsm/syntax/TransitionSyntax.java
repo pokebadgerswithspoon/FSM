@@ -23,7 +23,7 @@ public interface TransitionSyntax<S, E, R, P> {
 
     StateSyntax<S, E, R> transition();
 
-    StateSyntax<S, E, R> transition(Action<R, P> action);
+    StateSyntax<S, E, R> transition(Action<R, P, S> action);
 
     TransitionSyntax<S, E, R, P> onlyIf(Guard<R, P> guard);
 
@@ -44,7 +44,7 @@ public interface TransitionSyntax<S, E, R, P> {
         }
 
         @Override
-        public StateSyntax<S, E, R> transition(Action<R, P> action) {
+        public StateSyntax<S, E, R> transition(Action<R, P, S> action) {
             return new StateSyntax.Impl<>(this, action);
         }
 

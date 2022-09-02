@@ -41,7 +41,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
         this.startRef = startRef;
     }
 
-    Node<S, E, R, ?> createAndRegisterNode(Ref<S> ref, Action<R, Object> action) {
+    Node<S, E, R, ?> createAndRegisterNode(Ref<S> ref, Action<R, Object, S> action) {
         if (this.nodes.containsKey(ref)) {
             Node<S, E, R, ?> node = this.nodes.get(ref);
             ActionBox.tryTake(node.onEnter, action, () -> new IllegalArgumentException("Ref is already known " + ref));
@@ -49,7 +49,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
         return nodes.computeIfAbsent(ref, (r) -> doCreateNode(r, action));
     }
 
-    protected abstract Node<S,E,R,?> doCreateNode(Ref<S> ref, Action<R, Object> action);
+    protected abstract Node<S,E,R,?> doCreateNode(Ref<S> ref, Action<R, Object, S> action);
 
 
 
@@ -68,14 +68,14 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
     }
 
     @Override
-    public SELF then(Action<R, Object> action) {
+    public SELF then(Action<R, Object, S> action) {
 //        current = current.then(action);
 //        return (SELF) this;
         return then(new Ref<>(), action);
     }
 
     @Override
-    public SELF then(Ref<S> ref, Action<R, Object> action) {
+    public SELF then(Ref<S> ref, Action<R, Object, S> action) {
         if(current == null) { // ie block after choose or stay
             current = createAndRegisterNode(ref, action);
         } else {
@@ -87,7 +87,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
 
 
     @Override
-    public SELF thenStay(Action<R, Object> action, Consumer<EventSyntax<S, E, R>> leave) {
+    public SELF thenStay(Action<R, Object, S> action, Consumer<EventSyntax<S, E, R>> leave) {
         this.then(action);
         leave.accept(new EventSyntaxImpl<>(current));
         current = null;
@@ -156,7 +156,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
         }
 
         @Override
-        protected Node<S, E, R, ?> doCreateNode(Ref<S> ref, Action<R, Object> action) {
+        protected Node<S, E, R, ?> doCreateNode(Ref<S> ref, Action<R, Object, S> action) {
             return new Node.RootNode<>(this, ref, action);
         }
 
@@ -179,7 +179,7 @@ abstract class ProcessBuilderImpl<S, E, R, SELF extends ProcessBuilder.InProcess
         }
 
         @Override
-        protected Node<S, E, R, ?> doCreateNode(Ref<S> ref, Action<R, Object> action) {
+        protected Node<S, E, R, ?> doCreateNode(Ref<S> ref, Action<R, Object, S> action) {
             return new Node.BranchNode<>(this, ref, action);
         }
 
