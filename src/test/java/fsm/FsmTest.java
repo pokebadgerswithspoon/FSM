@@ -8,12 +8,16 @@
  */
 package fsm;
 
+import lombok.AllArgsConstructor;
 import org.junit.Test;
 
+import java.util.Optional;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- *
  * @author lauri
  */
 public class FsmTest {
@@ -22,8 +26,8 @@ public class FsmTest {
         runtime.knock++;
     };
     static final Action<Runtime, Integer, String> log = (runtime, e) -> {
-        System.out.println("Knock "+ runtime.knock);
-        System.out.println("Payload: "+ e);
+        System.out.println("Knock " + runtime.knock);
+        System.out.println("Payload: " + e);
     };
 
     @Test
@@ -36,12 +40,12 @@ public class FsmTest {
         rules.on("KNOCK", Integer.class).transition(action).keepState();
         rules.in("INIT").on("KNOCK", Integer.class).transition(action).keepState();
 
-        Runtime runtime = new Runtime();
+        Runtime runtime = new Runtime(0);
         Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
 
         fsm.handle("KNOCK", 1234);
 
-        assertEquals(2, runtime.knock);
+        assertEquals(1, runtime.knock);
     }
 
     @Test
@@ -51,15 +55,20 @@ public class FsmTest {
         rules.on("KNOCK", Integer.class).transition(increment).keepState();
         rules.in("INIT").on("KNOCK", Integer.class).transition(increment).to("THE END");
 
-        Fsm<String, String, Runtime> fsm = rules.define(new Runtime(), "INIT");
+        Fsm<String, String, Runtime> fsm = rules.define(new Runtime(0), "INIT");
 
-        fsm.handle("KNOCK");
-        fsm.handle("KNOCK");
+        Optional<Transition<String, String, ?>> knock1 = fsm.handle("KNOCK");
+        Optional<Transition<String, String, ?>> knock2 = fsm.handle("KNOCK");
 
-        assertEquals(3, fsm.getRuntime().knock);
+
+        assertEquals(2, fsm.getRuntime().knock);
         assertEquals("THE END", fsm.getState());
+
+        assertThat(knock1.get().getTo(), equalTo("THE END"));
+        assertThat(knock2.get().getFrom(), equalTo("THE END"));
+        assertThat(knock2.get().getTo(), equalTo("THE END"));
     }
-    
+
     @Test
     public void testDoubleMatch2() {
 
@@ -67,7 +76,7 @@ public class FsmTest {
         rules.in("INIT").on("KNOCK", Integer.class).transition(increment).keepState();
         rules.in("INIT").on("KNOCK", Integer.class).transition(increment).to("THE END");
 
-        Runtime runtime = new Runtime();
+        Runtime runtime = new Runtime(0);
         Fsm<String, String, Runtime> fsm = rules.define(runtime, "INIT");
 
         fsm.handle("KNOCK");
@@ -75,11 +84,12 @@ public class FsmTest {
 
         assertEquals(1, runtime.knock);
         assertEquals("THE END", fsm.getState());
-    }    
+    }
 
+    @AllArgsConstructor
     static class Runtime {
 
-        private int knock = 0;
+        private int knock;
 
     }
 

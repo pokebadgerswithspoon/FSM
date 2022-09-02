@@ -14,7 +14,10 @@ import fsm.syntax.TransitionSyntax;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static fsm.util.Util.iterableNonNulls;
 import static java.util.Objects.requireNonNull;
@@ -106,24 +109,34 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
         }
 
         @Override
-        public void handle(E event) {
-            handle(new Event<>(event));
+        public Optional<Transition<S, E, ?>> handle(E event) {
+            return handle(new Event(event));
         }
 
         @Override
-        public <P> void handle(E event, P payload) {
-            handle(new Event<>(event, payload));
+        public <P> Optional<Transition<S, E, P>> handle(E event, P payload) {
+            return handle(new Event<>(event, payload));
         }
 
-        void handle(Event<E, Object> e) {
-            Iterable<StateHandler<S, E, R>> handlers = iterableNonNulls(anyStateHandler, stateHandlers.get(currentState));
+        <P> Optional<Transition<S, E, P>> handle(Event<E, P> e) {
+            Iterable<StateHandler<S, E, R>> handlers = iterableNonNulls(stateHandlers.get(currentState), anyStateHandler);
             for (StateHandler<S, E, R> handler : handlers) {
-                S newState = handler.handle(currentState, e, runtime);
-                if (!currentState.equals(newState)) {
-                    currentState = newState;
-                    return;
+                Optional<Transition<S, E, P>> transition = handler.handle(currentState, e, runtime);
+                if(transition.isPresent()) {
+                    transition.map(Transition::getTo)
+                            .filter(Objects::nonNull)
+                            .filter(not(currentState::equals))
+                            .ifPresent(
+                                    newState -> currentState = newState
+                            );
+                    return transition;
                 }
             }
+            return Optional.empty();
+        }
+
+        private Predicate<S> not(Predicate<S> predicate) {
+            return t -> !predicate.test(t);
         }
 
 
