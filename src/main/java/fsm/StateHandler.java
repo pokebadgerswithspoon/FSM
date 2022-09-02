@@ -12,6 +12,8 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+
 /**
  *
  * @author lauri
@@ -58,19 +60,20 @@ public class StateHandler<S, E, R> {
      * @param runtime execution runtime
      * @return new state or null if no action taken
      */
-    public <P> S handle(S state, Event<E,P> event, R runtime) {
+    public <P> Optional<Transition<S,E,P>> handle(S state, Event<E,P> event, R runtime) {
         Collection<EventHandler<S, E, R, ?>> handlers = handlers(event.type);
-        S stateTo = null;
         for (EventHandler<S, E, R, ?> handler : handlers) {
             Guard g = handler.guard;
             if (g.allow(runtime, event.payload)) {
                 Action a = handler.action;
-                stateTo = handler.stateTo;
-                a.execute(runtime, new Transition.Impl(state, stateTo, event.type, event.payload));
-                break;
+                // .keepState() means null in stateTo
+                S stateTo = ofNullable(handler.stateTo).orElse(state);
+                Transition.Impl transition = new Transition.Impl(state, stateTo, event.type, event.payload);
+                a.execute(runtime, transition);
+                return Optional.of(transition);
             }
         }
-        return stateTo == null ? state : stateTo;
+        return Optional.empty();
     }
 
     public boolean knowsHowToHandle(E event) {

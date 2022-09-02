@@ -8,6 +8,8 @@
  */
 package fsm;
 
+import java.util.Optional;
+
 /**
  *
  * @author lauri
@@ -19,8 +21,8 @@ public interface Fsm<S, E, R> {
      *
      * @param event to handle
      */
-    <P> void handle(E event, P payload);
-    void handle(E event);
+    <P> Optional<Transition<S, E, P>> handle(E event, P payload);
+    Optional<Transition<S, E, ?>> handle(E event);
 
     /**
      * State of the machine
