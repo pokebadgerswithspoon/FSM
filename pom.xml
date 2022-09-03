@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.pbws.fsm</groupId>
     <artifactId>fsm</artifactId>
-    <version>0.0.10-SNAPSHOT</version>
+    <version>0.0.10</version>
     <description>Finite state machine</description>
     <dependencies>
         <dependency>
@@ -83,7 +83,7 @@
         <connection>scm:git:git@github.com:pokebadgerswithspoon/FSM</connection>
         <url>scm:git:git@github.com:pokebadgerswithspoon/FSM</url>
         <developerConnection>scm:git:git@github.com:pokebadgerswithspoon/FSM</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v0.0.10</tag>
     </scm>
 
 
