@@ -16,18 +16,19 @@ import java.util.Optional;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author lauri
  */
 public class FsmTest {
 
-    static final Action<Runtime, Integer, String> increment = (runtime, e) -> {
+    static final Action<Runtime, Integer, String> increment = (runtime, transition) -> {
         runtime.knock++;
     };
-    static final Action<Runtime, Integer, String> log = (runtime, e) -> {
+    static final Action<Runtime, Integer, String> log = (runtime, transition) -> {
         System.out.println("Knock " + runtime.knock);
-        System.out.println("Payload: " + e);
+        System.out.println("Transition: " + transition);
     };
 
     @Test
@@ -67,6 +68,20 @@ public class FsmTest {
         assertThat(knock1.get().getTo(), equalTo("THE END"));
         assertThat(knock2.get().getFrom(), equalTo("THE END"));
         assertThat(knock2.get().getTo(), equalTo("THE END"));
+    }
+
+    @Test
+    public void define() {
+        FsmDefinition<String, String, Runtime> rules = new FsmDefinition();
+        rules.in("INIT").on("KNOCK", Integer.class).transition(increment).to("THE END");
+
+        rules.define(new Runtime(0), "THE END");
+
+        try {
+            rules.define(new Runtime(0), "UNKNOWN STATE");
+            fail("Should fail for unknown state");
+        } catch (IllegalArgumentException ex) {
+        }
     }
 
     @Test
