@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -22,8 +23,9 @@ public class StateHandler<S, E, R> {
 
     final Map<E, LinkedList<EventHandler<S, E, R, ?>>> eventMap = new HashMap<>();
     private final BiConsumer<LinkedList<EventHandler<S, E, R, ?>>, EventHandler<S,E,R,?>> addHandler;
+    private final Set<S> knownStates;
 
-    StateHandler(FsmDefinition.ExecutionOrder order) {
+    StateHandler(FsmDefinition.ExecutionOrder order, Set<S> knownStates) {
         switch (order) {
             case LAST_TO_FIRST:
                 addHandler = (h, e) -> h.addFirst(e);
@@ -34,9 +36,11 @@ public class StateHandler<S, E, R> {
             default:
                 throw new IllegalArgumentException("Unkown processing order setup");
         }
+        this.knownStates = requireNonNull(knownStates);
     }
 
     public <P> void register(E event, Action<R,P,S> action, Guard<R,P> guard, S stateTo) {
+        knownStates.add(stateTo);
         addHandler.accept(
                 handlers(event),
                 new EventHandler<>(action, guard, stateTo)

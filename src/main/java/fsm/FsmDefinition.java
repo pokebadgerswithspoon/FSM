@@ -13,6 +13,7 @@ import fsm.syntax.FsmDefinitionSyntax;
 import fsm.syntax.TransitionSyntax;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,6 +32,7 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
     private final StateHandler<S, E, R> anyStateHandler;
     private final Map<S, StateHandler<S, E, R>> stateHandlers = new HashMap<>();
     private final ExecutionOrder executionOrder;
+    private final Set<S> knownStates = new HashSet<>();
 
     public FsmDefinition() {
         this(ExecutionOrder.LAST_TO_FIRST);
@@ -38,7 +40,7 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
     public FsmDefinition(ExecutionOrder executionOrder) {
         requireNonNull(executionOrder);
         this.executionOrder = executionOrder;
-        this.anyStateHandler = new StateHandler<>(executionOrder);
+        this.anyStateHandler = new StateHandler<>(executionOrder, knownStates);
     }
 
 
@@ -60,15 +62,16 @@ public class FsmDefinition<S, E, R> implements FsmDefinitionSyntax<S, E, R> {
     private StateHandler<S,E,R> handler(S state) {
         StateHandler<S,E,R> result = stateHandlers.get(state);
         if (result == null) {
-            result = new StateHandler<>(executionOrder);
+            result = new StateHandler<>(executionOrder, knownStates);
             stateHandlers.put(state, result);
+            knownStates.add(state);
         }
         return result;
     }
 
     public Fsm<S, E, R> define(final R runtime, S initialState) {
         FsmImpl fsm = new FsmImpl(runtime, initialState);
-        if (!stateHandlers.containsKey(initialState)) {
+        if (!knownStates.contains(initialState)) {
             throw new IllegalArgumentException("State " + initialState + " is unknown to FSM definition");
         }
         return fsm;
